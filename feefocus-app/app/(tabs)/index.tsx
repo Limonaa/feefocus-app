@@ -1,8 +1,11 @@
 import { View, Text, FlatList, TouchableOpacity } from 'react-native';
+import { useState } from 'react';
 import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
 import { Subscription } from '@/types/subscription';
+import AddSubscriptionModal from '@/components/AddSubscriptionModal';
 
 export default function HomeScreen() {
+  const [modalVisible, setModalVisible] = useState(false);
   const subscriptions = useSubscriptionStore((state) => state.subscriptions);
   const addSubscription = useSubscriptionStore((state) => state.addSubscription);
   
@@ -70,14 +73,25 @@ export default function HomeScreen() {
       </View>
 
       <View className="flex-1 p-4">
-        <TouchableOpacity
-          onPress={handleAddMock}
-          className="bg-blue-600 p-4 rounded-2xl mb-4 active:opacity-80"
-        >
-          <Text className="text-white text-center font-semibold text-lg">
-            Add Mock Subscription
-          </Text>
-        </TouchableOpacity>
+        <View className="flex-row gap-2 mb-4">
+          <TouchableOpacity
+            onPress={() => setModalVisible(true)}
+            className="flex-1 bg-blue-600 p-4 rounded-2xl active:opacity-80"
+          >
+            <Text className="text-white text-center font-semibold text-lg">
+              Add Subscription
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            onPress={handleAddMock}
+            className="bg-gray-300 px-4 py-3 rounded-2xl active:opacity-80"
+          >
+            <Text className="text-gray-700 text-center font-medium text-sm">
+              Mock
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         <FlatList
           data={subscriptions}
@@ -86,12 +100,17 @@ export default function HomeScreen() {
           ListEmptyComponent={
             <View className="items-center justify-center p-8">
               <Text className="text-gray-500 text-center text-base">
-                No subscriptions yet. Tap "Add Mock Subscription" to get started!
+                No subscriptions yet. Tap "Add Subscription" to get started!
               </Text>
             </View>
           }
         />
       </View>
+
+      <AddSubscriptionModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+      />
     </View>
   );
 }
