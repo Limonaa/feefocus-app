@@ -1,98 +1,97 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { View, Text, FlatList, TouchableOpacity } from 'react-native';
+import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
+import { Subscription } from '@/types/subscription';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const subscriptions = useSubscriptionStore((state) => state.subscriptions);
+  const addSubscription = useSubscriptionStore((state) => state.addSubscription);
+  
+  const totalMonthlyCost = subscriptions.reduce((total, sub) => {
+    let monthlyPrice = sub.price;
+    
+    switch (sub.billingCycle) {
+      case 'daily':
+        monthlyPrice = sub.price * 30;
+        break;
+      case 'weekly':
+        monthlyPrice = sub.price * 4;
+        break;
+      case 'monthly':
+        monthlyPrice = sub.price;
+        break;
+      case 'quarterly':
+        monthlyPrice = sub.price / 3;
+        break;
+      case 'yearly':
+        monthlyPrice = sub.price / 12;
+        break;
+    }
+    
+    return total + monthlyPrice;
+  }, 0);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const handleAddMock = () => {
+    const mockSubscription: Subscription = {
+      id: Date.now().toString(),
+      name: 'Netflix',
+      price: 15.99,
+      currency: 'USD',
+      billingCycle: 'monthly',
+      category: 'Entertainment',
+      nextPaymentDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    };
+    addSubscription(mockSubscription);
+  };
+
+  const renderSubscriptionItem = ({ item }: { item: Subscription }) => (
+    <View className="bg-white p-4 mb-3 rounded-2xl shadow-sm">
+      <Text className="text-lg font-semibold text-gray-900">
+        {item.name}
+      </Text>
+      <Text className="text-base text-gray-600 mt-1">
+        {item.price} {item.currency} / {item.billingCycle}
+      </Text>
+      <Text className="text-sm text-gray-400 mt-1">
+        {item.category}
+      </Text>
+    </View>
+  );
+
+  return (
+    <View className="flex-1 bg-gray-50">
+      <View className="bg-blue-600 px-6 pt-16 pb-6">
+        <Text className="text-white text-3xl font-bold">FeeFocus</Text>
+        <View className="mt-4 bg-white/20 p-4 rounded-2xl">
+          <Text className="text-white text-sm font-medium">Total Monthly Spending</Text>
+          <Text className="text-white text-4xl font-bold mt-1">
+            ${totalMonthlyCost.toFixed(2)}
+          </Text>
+        </View>
+      </View>
+
+      <View className="flex-1 p-4">
+        <TouchableOpacity
+          onPress={handleAddMock}
+          className="bg-blue-600 p-4 rounded-2xl mb-4 active:opacity-80"
+        >
+          <Text className="text-white text-center font-semibold text-lg">
+            Add Mock Subscription
+          </Text>
+        </TouchableOpacity>
+
+        <FlatList
+          data={subscriptions}
+          keyExtractor={(item) => item.id}
+          renderItem={renderSubscriptionItem}
+          ListEmptyComponent={
+            <View className="items-center justify-center p-8">
+              <Text className="text-gray-500 text-center text-base">
+                No subscriptions yet. Tap "Add Mock Subscription" to get started!
+              </Text>
+            </View>
+          }
+        />
+      </View>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
