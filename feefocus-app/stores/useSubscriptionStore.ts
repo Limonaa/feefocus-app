@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Subscription } from '@/types/subscription';
 
 interface SubscriptionStore {
@@ -10,8 +12,10 @@ interface SubscriptionStore {
   getTotalMonthlySpending: () => number;
 }
 
-export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
-  subscriptions: [],
+export const useSubscriptionStore = create<SubscriptionStore>()(
+  persist(
+    (set, get) => ({
+      subscriptions: [],
   
   addSubscription: (subscription) =>
     set((state) => ({
@@ -60,4 +64,10 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
       return total + monthlyPrice;
     }, 0);
   },
-}));
+}),
+    {
+      name: 'subscription-storage',
+      storage: createJSONStorage(() => AsyncStorage),
+    }
+  )
+);

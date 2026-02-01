@@ -33,19 +33,6 @@ export default function HomeScreen() {
     return total + monthlyPrice;
   }, 0);
 
-  const handleAddMock = () => {
-    const mockSubscription: Subscription = {
-      id: Date.now().toString(),
-      name: 'Netflix',
-      price: 15.99,
-      currency: 'USD',
-      billingCycle: 'monthly',
-      category: 'Entertainment',
-      nextPaymentDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    };
-    addSubscription(mockSubscription);
-  };
-
   const renderSubscriptionItem = ({ item }: { item: Subscription }) => (
     <View className="bg-white p-4 mb-3 rounded-2xl shadow-sm">
       <Text className="text-lg font-semibold text-gray-900">
@@ -73,22 +60,13 @@ export default function HomeScreen() {
       </View>
 
       <View className="flex-1 p-4">
-        <View className="flex-row gap-2 mb-4">
+        <View className="flex-row mb-4">
           <TouchableOpacity
             onPress={() => setModalVisible(true)}
             className="flex-1 bg-blue-600 p-4 rounded-2xl active:opacity-80"
           >
             <Text className="text-white text-center font-semibold text-lg">
               Add Subscription
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            onPress={handleAddMock}
-            className="bg-gray-300 px-4 py-3 rounded-2xl active:opacity-80"
-          >
-            <Text className="text-gray-700 text-center font-medium text-sm">
-              Mock
             </Text>
           </TouchableOpacity>
         </View>

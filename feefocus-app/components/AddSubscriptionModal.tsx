@@ -51,7 +51,7 @@ export default function AddSubscriptionModal({
     defaultValues: {
       name: '',
       price: '',
-      currency: 'USD',
+      currency: 'PLN',
       billingCycle: 'monthly',
       category: '',
     },
@@ -116,7 +116,7 @@ export default function AddSubscriptionModal({
                     onPress={handleClose}
                     className="w-8 h-8 items-center justify-center rounded-full bg-gray-100"
                   >
-                    <Text className="text-gray-600 text-xl">×</Text>
+                    <Text className="text-gray-600 text-xl font-semibold">x</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -145,7 +145,6 @@ export default function AddSubscriptionModal({
                   )}
                 </View>
 
-                {/* Price Input */}
                 <View className="mb-4">
                   <Text className="text-sm font-medium text-gray-700 mb-2">
                     Price
@@ -172,7 +171,6 @@ export default function AddSubscriptionModal({
                   )}
                 </View>
 
-                {/* Currency Input */}
                 <View className="mb-4">
                   <Text className="text-sm font-medium text-gray-700 mb-2">
                     Currency
@@ -198,7 +196,6 @@ export default function AddSubscriptionModal({
                   )}
                 </View>
 
-                {/* Category Input */}
                 <View className="mb-4">
                   <Text className="text-sm font-medium text-gray-700 mb-2">
                     Category <Text className="text-gray-400">(optional)</Text>
@@ -224,7 +221,6 @@ export default function AddSubscriptionModal({
                   )}
                 </View>
 
-                {/* Billing Cycle */}
                 <View className="mb-6">
                   <Text className="text-sm font-medium text-gray-700 mb-2">
                     Billing Cycle
@@ -265,7 +261,6 @@ export default function AddSubscriptionModal({
                   )}
                 </View>
 
-                {/* Buttons */}
                 <View className="flex-row gap-3">
                   <TouchableOpacity
                     onPress={handleClose}
