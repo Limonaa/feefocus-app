@@ -3,22 +3,23 @@ import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 
 import { HapticTab } from '@/components/haptic-tab';
+import { Colors } from '@/constants/colors';
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#135bec',
-        tabBarInactiveTintColor: '#94a3b8',
+        tabBarActiveTintColor: Colors.primary,
+        tabBarInactiveTintColor: Colors.text.tertiary,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: {
           height: 80,
           paddingBottom: 20,
           paddingTop: 8,
-          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          backgroundColor: Colors.opacity.white80,
           borderTopWidth: 1,
-          borderTopColor: 'rgba(226, 232, 240, 0.5)',
+          borderTopColor: Colors.opacity.white30,
           position: 'absolute',
         },
         tabBarLabelStyle: {

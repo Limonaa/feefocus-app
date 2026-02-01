@@ -4,6 +4,7 @@ import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
 import { Subscription } from '@/types/subscription';
 import AddSubscriptionModal from '@/components/AddSubscriptionModal';
 import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '@/constants/colors';
 
 export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -13,17 +14,11 @@ export default function HomeScreen() {
     let monthlyPrice = sub.price;
     
     switch (sub.billingCycle) {
-      case 'daily':
-        monthlyPrice = sub.price * 30;
-        break;
       case 'weekly':
         monthlyPrice = sub.price * 4;
         break;
       case 'monthly':
         monthlyPrice = sub.price;
-        break;
-      case 'quarterly':
-        monthlyPrice = sub.price / 3;
         break;
       case 'yearly':
         monthlyPrice = sub.price / 12;
@@ -38,7 +33,7 @@ export default function HomeScreen() {
       className="flex-row items-center gap-4 bg-white border border-gray-200 rounded-2xl p-4 mb-3"
       activeOpacity={0.7}
     >
-      <View className="w-14 h-14 rounded-xl bg-blue-600 items-center justify-center">
+      <View className="w-14 h-14 rounded-xl items-center justify-center" style={{ backgroundColor: Colors.primary }}>
         <Text className="text-white text-2xl font-bold">
           {item.name.charAt(0).toUpperCase()}
         </Text>
@@ -48,7 +43,7 @@ export default function HomeScreen() {
           {item.name}
         </Text>
         <View className="flex-row items-center gap-1.5 mt-1">
-          <Ionicons name="calendar-outline" size={12} color="#94a3b8" />
+          <Ionicons name="calendar-outline" size={12} color={Colors.text.tertiary} />
           <Text className="text-xs font-medium text-gray-500 uppercase tracking-wide">
             {item.billingCycle}
           </Text>
@@ -74,13 +69,15 @@ export default function HomeScreen() {
           FeeFocus
         </Text>
         <TouchableOpacity className="w-10 h-10 rounded-full bg-gray-200/50 items-center justify-center">
-          <Ionicons name="search" size={20} color="#1e293b" />
+          <Ionicons name="search" size={20} color={Colors.text.primary} />
         </TouchableOpacity>
       </View>
 
-      <View className="mx-4 mt-4 mb-2 bg-[#135bec] rounded-2xl p-6 relative overflow-hidden shadow-xl">
+      <View className="mx-4 mt-4 mb-2 rounded-2xl p-6 relative overflow-hidden shadow-xl" style={{ backgroundColor: Colors.primary }}>
         <View className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/10" />
+        <View className="absolute left-12 -top-3 w-8 h-8 rounded-full bg-white/30" />
         <View className="absolute -left-8 -bottom-8 w-32 h-32 rounded-full bg-black/20" />
+        <View className="absolute right-24 -bottom-8 w-24 h-24 rounded-full bg-black/10" />
         
         <View className="relative z-10">
           <Text className="text-white/80 text-xs font-semibold uppercase tracking-wider mb-1">
@@ -132,7 +129,8 @@ export default function HomeScreen() {
       </ScrollView>
 
       <TouchableOpacity 
-        className="absolute bottom-24 right-6 w-14 h-14 rounded-full bg-[#135bec] items-center justify-center shadow-xl"
+        className="absolute bottom-24 right-6 w-14 h-14 rounded-full items-center justify-center shadow-xl"
+        style={{ backgroundColor: Colors.primary }}
         onPress={() => setModalVisible(true)}
         activeOpacity={0.9}
       >

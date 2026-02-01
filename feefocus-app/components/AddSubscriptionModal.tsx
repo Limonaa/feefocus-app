@@ -7,13 +7,16 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Pressable,
 } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
 import { Subscription } from '@/types/subscription';
+import { Colors } from '@/constants/colors';
 
 const subscriptionSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters'),
@@ -23,9 +26,10 @@ const subscriptionSchema = z.object({
   }, {
     message: 'Price must be a positive number',
   }),
-  currency: z.string().min(1, 'Currency is required'),
-  billingCycle: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'yearly']),
+  currency: z.enum(['PLN', 'USD', 'EUR', 'GBP']),
+  billingCycle: z.enum(['monthly', 'weekly', 'yearly']),
   category: z.string().optional(),
+  nextPaymentDate: z.date(),
 });
 
 type SubscriptionFormData = z.infer<typeof subscriptionSchema>;
@@ -35,16 +39,33 @@ interface AddSubscriptionModalProps {
   onClose: () => void;
 }
 
+const currencies = [
+  { value: 'PLN', symbol: 'zł' },
+  { value: 'USD', symbol: '$' },
+  { value: 'EUR', symbol: '€' },
+  { value: 'GBP', symbol: '£' },
+] as const;
+
+const billingCycles = [
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'yearly', label: 'Yearly' },
+] as const;
+
 export default function AddSubscriptionModal({
   visible,
   onClose,
 }: AddSubscriptionModalProps) {
   const addSubscription = useSubscriptionStore((state) => state.addSubscription);
+  const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const {
     control,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<SubscriptionFormData>({
     resolver: zodResolver(subscriptionSchema),
@@ -54,8 +75,12 @@ export default function AddSubscriptionModal({
       currency: 'PLN',
       billingCycle: 'monthly',
       category: '',
+      nextPaymentDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     },
   });
+
+  const selectedCurrency = watch('currency');
+  const selectedBillingCycle = watch('billingCycle');
 
   const onSubmit = (data: SubscriptionFormData) => {
     const normalizedPrice = data.price.replace(',', '.');
@@ -66,7 +91,7 @@ export default function AddSubscriptionModal({
       currency: data.currency,
       billingCycle: data.billingCycle,
       category: data.category || 'Other',
-      nextPaymentDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      nextPaymentDate: data.nextPaymentDate,
     };
 
     addSubscription(newSubscription);
@@ -76,213 +101,258 @@ export default function AddSubscriptionModal({
 
   const handleClose = () => {
     reset();
+    setShowCurrencyPicker(false);
+    setShowDatePicker(false);
     onClose();
   };
-
-  const billingCycles: Array<{
-    label: string;
-    value: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
-  }> = [
-    { label: 'Daily', value: 'daily' },
-    { label: 'Weekly', value: 'weekly' },
-    { label: 'Monthly', value: 'monthly' },
-    { label: 'Quarterly', value: 'quarterly' },
-    { label: 'Yearly', value: 'yearly' },
-  ];
 
   return (
     <Modal
       visible={visible}
       animationType="slide"
-      transparent
+      transparent={false}
       onRequestClose={handleClose}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
+        style={{ flex: 1, backgroundColor: Colors.background.main }}
       >
-        <Pressable
-          className="flex-1 bg-black/50 justify-end"
-          onPress={handleClose}
-        >
-          <Pressable className="bg-white" onPress={(e) => e.stopPropagation()}>
-            <ScrollView className="max-h-[90vh]">
-              <View className="p-6">
-                <View className="flex-row justify-between items-center mb-6">
-                  <Text className="text-2xl font-bold text-gray-900">
-                    Add Subscription
-                  </Text>
-                  <TouchableOpacity
-                    onPress={handleClose}
-                    className="w-8 h-8 items-center justify-center rounded-full bg-gray-100"
-                  >
-                    <Text className="text-gray-600 text-xl font-semibold">x</Text>
-                  </TouchableOpacity>
-                </View>
+        <View className="flex-row items-center px-4 pt-12 pb-3 border-b" style={{ backgroundColor: Colors.background.main, borderBottomColor: Colors.border.light }}>
+          <TouchableOpacity
+            onPress={handleClose}
+            className="w-12 h-12 items-center justify-center"
+          >
+            <Ionicons name="arrow-back" size={24} color={Colors.text.primary} />
+          </TouchableOpacity>
+          <Text className="text-lg font-bold flex-1 text-center pr-12" style={{ color: Colors.text.primary }}>
+            Add New Subscription
+          </Text>
+        </View>
 
-                <View className="mb-4">
-                  <Text className="text-sm font-medium text-gray-700 mb-2">
-                    Name
-                  </Text>
-                  <Controller
-                    control={control}
-                    name="name"
-                    render={({ field: { onChange, value } }) => (
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          <View className="border-t mt-4" style={{ borderTopColor: Colors.border.light }}>
+            <Text className="text-lg font-bold px-4 pb-4 pt-6" style={{ color: Colors.text.primary }}>
+              Subscription Details
+            </Text>
+
+            <View className="px-4 space-y-5">
+              <View className="space-y-2">
+                <Text className="text-sm font-medium px-1" style={{ color: Colors.text.secondary }}>
+                  Service Name
+                </Text>
+                <Controller
+                  control={control}
+                  name="name"
+                  render={({ field: { onChange, value } }) => (
+                    <View className="h-14 rounded-xl flex-row items-center px-4 border" style={{ backgroundColor: Colors.background.card, borderColor: Colors.border.light }}>
+                      <Ionicons name="apps" size={20} color={Colors.text.tertiary} />
                       <TextInput
-                        className="border border-gray-300 rounded-xl px-4 py-3 text-base text-gray-900"
-                        placeholder="e.g., Netflix"
-                        placeholderTextColor="#A0A0A0"
+                        className="flex-1 ml-3 text-base font-medium"
+                        style={{ color: Colors.text.primary }}
+                        placeholder="e.g., Spotify"
+                        placeholderTextColor={Colors.text.tertiary}
                         value={value}
                         onChangeText={onChange}
-                        textAlignVertical="center"
                       />
+                    </View>
+                  )}
+                />
+                {errors.name && (
+                  <Text className="text-red-500 text-sm px-1">
+                    {errors.name.message}
+                  </Text>
+                )}
+              </View>
+
+              <View className="space-y-2">
+                <Text className="text-sm font-medium px-1" style={{ color: Colors.text.secondary }}>
+                  Price
+                </Text>
+                <View className="flex-row gap-3">
+                  <Controller
+                    control={control}
+                    name="currency"
+                    render={({ field: { value } }) => (
+                      <TouchableOpacity
+                        onPress={() => setShowCurrencyPicker(!showCurrencyPicker)}
+                        className="w-28 h-14 rounded-xl flex-row items-center px-4 border"
+                        style={{ backgroundColor: Colors.background.card, borderColor: Colors.border.light }}
+                      >
+                        <Text className="font-medium" style={{ color: Colors.text.primary }}>{value}</Text>
+                        <Ionicons name="chevron-down" size={20} color={Colors.text.secondary} style={{ marginLeft: 'auto' }} />
+                      </TouchableOpacity>
                     )}
                   />
-                  {errors.name && (
-                    <Text className="text-red-500 text-sm mt-1">
-                      {errors.name.message}
-                    </Text>
-                  )}
-                </View>
 
-                <View className="mb-4">
-                  <Text className="text-sm font-medium text-gray-700 mb-2">
-                    Price
-                  </Text>
                   <Controller
                     control={control}
                     name="price"
                     render={({ field: { onChange, value } }) => (
-                      <TextInput
-                        className="border border-gray-300 rounded-xl px-4 py-3 text-base text-gray-900"
-                        placeholder="15.99"
-                        placeholderTextColor={"#A0A0A0"}
-                        value={value}
-                        onChangeText={onChange}
-                        keyboardType="decimal-pad"
-                        textAlignVertical="center"
-                      />
-                    )}
-                  />
-                  {errors.price && (
-                    <Text className="text-red-500 text-sm mt-1">
-                      {errors.price.message}
-                    </Text>
-                  )}
-                </View>
-
-                <View className="mb-4">
-                  <Text className="text-sm font-medium text-gray-700 mb-2">
-                    Currency
-                  </Text>
-                  <Controller
-                    control={control}
-                    name="currency"
-                    render={({ field: { onChange, value } }) => (
-                      <TextInput
-                        className="border border-gray-300 rounded-xl px-4 py-3 text-base text-gray-900"
-                        placeholder="USD"
-                        placeholderTextColor="#A0A0A0"
-                        value={value}
-                        onChangeText={onChange}
-                        textAlignVertical="center"
-                      />
-                    )}
-                  />
-                  {errors.currency && (
-                    <Text className="text-red-500 text-sm mt-1">
-                      {errors.currency.message}
-                    </Text>
-                  )}
-                </View>
-
-                <View className="mb-4">
-                  <Text className="text-sm font-medium text-gray-700 mb-2">
-                    Category <Text className="text-gray-400">(optional)</Text>
-                  </Text>
-                  <Controller
-                    control={control}
-                    name="category"
-                    render={({ field: { onChange, value } }) => (
-                      <TextInput
-                        className="border border-gray-300 rounded-xl px-4 py-3 text-base text-gray-900"
-                        placeholder="e.g., Entertainment"
-                        placeholderTextColor="#A0A0A0"
-                        value={value}
-                        onChangeText={onChange}
-                        textAlignVertical="center"
-                      />
-                    )}
-                  />
-                  {errors.category && (
-                    <Text className="text-red-500 text-sm mt-1">
-                      {errors.category.message}
-                    </Text>
-                  )}
-                </View>
-
-                <View className="mb-6">
-                  <Text className="text-sm font-medium text-gray-700 mb-2">
-                    Billing Cycle
-                  </Text>
-                  <Controller
-                    control={control}
-                    name="billingCycle"
-                    render={({ field: { onChange, value } }) => (
-                      <View className="flex-row flex-wrap gap-2">
-                        {billingCycles.map((cycle) => (
-                          <TouchableOpacity
-                            key={cycle.value}
-                            onPress={() => onChange(cycle.value)}
-                            className={`px-4 py-2 rounded-xl border ${
-                              value === cycle.value
-                                ? 'bg-blue-600 border-blue-600'
-                                : 'bg-white border-gray-300'
-                            }`}
-                          >
-                            <Text
-                              className={`text-sm font-medium ${
-                                value === cycle.value
-                                  ? 'text-white'
-                                  : 'text-gray-700'
-                              }`}
-                            >
-                              {cycle.label}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
+                      <View className="flex-1 h-14 rounded-xl flex-row items-center px-4 border" style={{ backgroundColor: Colors.background.card, borderColor: Colors.border.light }}>
+                        <TextInput
+                          className="flex-1 text-lg font-bold"
+                          style={{ color: Colors.text.primary }}
+                          placeholder="0.00"
+                          placeholderTextColor={Colors.text.tertiary}
+                          value={value}
+                          onChangeText={onChange}
+                          keyboardType="decimal-pad"
+                        />
                       </View>
                     )}
                   />
-                  {errors.billingCycle && (
-                    <Text className="text-red-500 text-sm mt-1">
-                      {errors.billingCycle.message}
-                    </Text>
-                  )}
                 </View>
-
-                <View className="flex-row gap-3">
-                  <TouchableOpacity
-                    onPress={handleClose}
-                    className="flex-1 bg-gray-200 py-3 rounded-xl"
-                  >
-                    <Text className="text-gray-700 text-center font-semibold text-base">
-                      Cancel
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={handleSubmit(onSubmit)}
-                    className="flex-1 bg-blue-600 py-3 rounded-xl"
-                  >
-                    <Text className="text-white text-center font-semibold text-base">
-                      Add Subscription
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                {showCurrencyPicker && (
+                  <View className="rounded-xl border overflow-hidden" style={{ backgroundColor: Colors.background.card, borderColor: Colors.border.light }}>
+                    {currencies.map((curr) => (
+                      <TouchableOpacity
+                        key={curr.value}
+                        onPress={() => {
+                          setValue('currency', curr.value);
+                          setShowCurrencyPicker(false);
+                        }}
+                        className="flex-row items-center px-4 py-3 border-b"
+                        style={{ borderBottomColor: Colors.border.light }}
+                      >
+                        <Text className="font-medium" style={{ color: Colors.text.primary }}>
+                          {curr.value} ({curr.symbol})
+                        </Text>
+                        {selectedCurrency === curr.value && (
+                          <Ionicons name="checkmark" size={20} color={Colors.primary} style={{ marginLeft: 'auto' }} />
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+                {errors.price && (
+                  <Text className="text-red-500 text-sm px-1">
+                    {errors.price.message}
+                  </Text>
+                )}
               </View>
-            </ScrollView>
-          </Pressable>
-        </Pressable>
+
+              <View className="space-y-2">
+                <Text className="text-sm font-medium px-1" style={{ color: Colors.text.secondary }}>
+                  Billing Cycle
+                </Text>
+                <Controller
+                  control={control}
+                  name="billingCycle"
+                  render={({ field: { onChange, value } }) => (
+                    <View className="flex-row p-1 rounded-xl border" style={{ backgroundColor: Colors.background.card, borderColor: Colors.border.light }}>
+                      {billingCycles.map((cycle) => (
+                        <TouchableOpacity
+                          key={cycle.value}
+                          onPress={() => onChange(cycle.value)}
+                          activeOpacity={0.7}
+                          style={[
+                            { flex: 1, paddingVertical: 10, borderRadius: 8 },
+                            value === cycle.value && { backgroundColor: Colors.primary }
+                          ]}
+                        >
+                          <Text
+                            className="text-center text-sm"
+                            style={{
+                              fontWeight: value === cycle.value ? 'bold' : '500',
+                              color: value === cycle.value ? Colors.text.white : Colors.text.secondary
+                            }}
+                          >
+                            {cycle.label}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                />
+              </View>
+
+              <View className="space-y-2">
+                <Text className="text-sm font-medium px-1" style={{ color: Colors.text.secondary }}>
+                  Category <Text style={{ color: Colors.text.tertiary }}>(optional)</Text>
+                </Text>
+                <Controller
+                  control={control}
+                  name="category"
+                  render={({ field: { onChange, value } }) => (
+                    <View className="h-14 rounded-xl flex-row items-center px-4 border" style={{ backgroundColor: Colors.background.card, borderColor: Colors.border.light }}>
+                      <Ionicons name="apps-outline" size={20} color={Colors.text.tertiary} />
+                      <TextInput
+                        className="flex-1 ml-3 text-base font-medium"
+                        style={{ color: Colors.text.primary }}
+                        placeholder="e.g., Entertainment"
+                        placeholderTextColor={Colors.text.tertiary}
+                        value={value}
+                        onChangeText={onChange}
+                      />
+                    </View>
+                  )}
+                />
+              </View>
+
+              <View className="space-y-2">
+                <Text className="text-sm font-medium px-1" style={{ color: Colors.text.secondary }}>
+                  Next Payment
+                </Text>
+                <Controller
+                  control={control}
+                  name="nextPaymentDate"
+                  render={({ field: { value, onChange } }) => (
+                    <>
+                      <TouchableOpacity
+                        onPress={() => setShowDatePicker(true)}
+                        activeOpacity={0.7}
+                      >
+                        <View className="h-14 rounded-xl flex-row items-center px-4 border" style={{ backgroundColor: Colors.background.card, borderColor: Colors.border.light }}>
+                          <Ionicons name="calendar-outline" size={20} color={Colors.text.tertiary} />
+                          <Text className="flex-1 ml-3 text-base font-medium" style={{ color: Colors.text.primary }}>
+                            {value.toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })}
+                          </Text>
+                          <Ionicons name="create-outline" size={20} color={Colors.text.secondary} />
+                        </View>
+                      </TouchableOpacity>
+                      {showDatePicker && (
+                          <DateTimePicker
+                            value={value}
+                            mode="date"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                            onChange={(event, selectedDate) => {
+                              setShowDatePicker(Platform.OS === 'ios');
+                              if (selectedDate) {
+                                onChange(selectedDate);
+                              }
+                            }}
+                            minimumDate={new Date()}
+                            themeVariant="light"
+                            accentColor={Colors.primary}
+                          />
+                      )}
+                    </>
+                  )}
+                />
+              </View>
+            </View>
+          </View>
+
+          <View className="h-32" />
+        </ScrollView>
+
+        <View className="absolute bottom-0 left-0 right-0 p-4 border-t" style={{ backgroundColor: Colors.background.main + 'F2', borderTopColor: Colors.border.light }}>
+          <TouchableOpacity
+            onPress={handleSubmit(onSubmit)}
+            className="w-full py-4 rounded-xl flex-row items-center justify-center gap-2 shadow-xl"
+            style={{ backgroundColor: Colors.primary }}
+            activeOpacity={0.9}
+          >
+            <Ionicons name="add-circle" size={24} color={Colors.text.white} />
+            <Text className="text-white font-bold text-base">
+              Add Subscription
+            </Text>
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
     </Modal>
   );

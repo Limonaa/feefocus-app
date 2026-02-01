@@ -44,17 +44,11 @@ export const useSubscriptionStore = create<SubscriptionStore>()(
       let monthlyPrice = sub.price;
       
       switch (sub.billingCycle) {
-        case 'daily':
-          monthlyPrice = sub.price * 30;
-          break;
         case 'weekly':
           monthlyPrice = sub.price * 4;
           break;
         case 'monthly':
           monthlyPrice = sub.price;
-          break;
-        case 'quarterly':
-          monthlyPrice = sub.price / 3;
           break;
         case 'yearly':
           monthlyPrice = sub.price / 12;
