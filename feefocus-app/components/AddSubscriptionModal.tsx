@@ -14,6 +14,12 @@ import { z } from "zod";
 import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { Subscription } from "@/types/subscription";
 import { Colors } from "@/constants/colors";
@@ -43,10 +49,10 @@ interface AddSubscriptionModalProps {
 }
 
 const currencies = [
-  { value: "PLN", symbol: "zł" },
   { value: "USD", symbol: "$" },
   { value: "EUR", symbol: "€" },
   { value: "GBP", symbol: "£" },
+  { value: "PLN", symbol: "zł" },
 ] as const;
 
 const billingCycles = [
@@ -64,6 +70,10 @@ export default function AddSubscriptionModal({
   );
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const weeklyScale = useSharedValue(1);
+  const monthlyScale = useSharedValue(1);
+  const yearlyScale = useSharedValue(1);
 
   const {
     control,
@@ -86,6 +96,21 @@ export default function AddSubscriptionModal({
 
   const selectedCurrency = watch("currency");
   const selectedBillingCycle = watch("billingCycle");
+
+  const handleBillingCycleChange = (value: "weekly" | "monthly" | "yearly") => {
+    const scaleValue =
+      value === "weekly"
+        ? weeklyScale
+        : value === "monthly"
+          ? monthlyScale
+          : yearlyScale;
+
+    scaleValue.value = 0.95;
+    scaleValue.value = withSpring(1, { damping: 10, mass: 0.8 });
+
+    control._formValues.billingCycle = value;
+    watch("billingCycle");
+  };
 
   const onSubmit = (data: SubscriptionFormData) => {
     const normalizedPrice = data.price.replace(",", ".");
@@ -192,34 +217,85 @@ export default function AddSubscriptionModal({
                 >
                   Price
                 </Text>
-                <View className="flex-row gap-3">
+                <View className="flex-row gap-3 relative">
                   <Controller
                     control={control}
                     name="currency"
                     render={({ field: { value } }) => (
-                      <TouchableOpacity
-                        onPress={() =>
-                          setShowCurrencyPicker(!showCurrencyPicker)
-                        }
-                        className="w-28 h-14 rounded-xl flex-row items-center px-4 border"
-                        style={{
-                          backgroundColor: Colors.background.card,
-                          borderColor: Colors.border.light,
-                        }}
-                      >
-                        <Text
-                          className="font-medium"
-                          style={{ color: Colors.text.primary }}
+                      <View style={{ position: "relative", zIndex: 10 }}>
+                        <TouchableOpacity
+                          onPress={() =>
+                            setShowCurrencyPicker(!showCurrencyPicker)
+                          }
+                          className="w-28 h-14 rounded-xl flex-row items-center px-4 border"
+                          style={{
+                            backgroundColor: Colors.background.card,
+                            borderColor: Colors.border.light,
+                          }}
                         >
-                          {value}
-                        </Text>
-                        <Ionicons
-                          name="chevron-down"
-                          size={20}
-                          color={Colors.text.secondary}
-                          style={{ marginLeft: "auto" }}
-                        />
-                      </TouchableOpacity>
+                          <Text
+                            className="font-medium"
+                            style={{ color: Colors.text.primary }}
+                          >
+                            {value}
+                          </Text>
+                          <Ionicons
+                            name="chevron-down"
+                            size={20}
+                            color={Colors.text.secondary}
+                            style={{ marginLeft: "auto" }}
+                          />
+                        </TouchableOpacity>
+                        {showCurrencyPicker && (
+                          <View
+                            className="rounded-xl border overflow-hidden"
+                            style={{
+                              position: "absolute",
+                              top: 58,
+                              left: 0,
+                              width: 112,
+                              backgroundColor: Colors.background.card,
+                              borderColor: Colors.border.light,
+                              shadowColor: "#000",
+                              shadowOffset: { width: 0, height: 4 },
+                              shadowOpacity: 0.15,
+                              shadowRadius: 8,
+                              elevation: 8,
+                            }}
+                          >
+                            {currencies.map((curr, index) => (
+                              <TouchableOpacity
+                                key={curr.value}
+                                onPress={() => {
+                                  setValue("currency", curr.value);
+                                  setShowCurrencyPicker(false);
+                                }}
+                                className="flex-row items-center px-4 py-3"
+                                style={{
+                                  borderBottomWidth:
+                                    index < currencies.length - 1 ? 1 : 0,
+                                  borderBottomColor: Colors.border.light,
+                                }}
+                              >
+                                <Text
+                                  className="font-medium"
+                                  style={{ color: Colors.text.primary }}
+                                >
+                                  {curr.value} ({curr.symbol})
+                                </Text>
+                                {selectedCurrency === curr.value && (
+                                  <Ionicons
+                                    name="checkmark"
+                                    size={20}
+                                    color={Colors.primary}
+                                    style={{ marginLeft: "auto" }}
+                                  />
+                                )}
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                        )}
+                      </View>
                     )}
                   />
 
@@ -247,42 +323,6 @@ export default function AddSubscriptionModal({
                     )}
                   />
                 </View>
-                {showCurrencyPicker && (
-                  <View
-                    className="rounded-xl border overflow-hidden"
-                    style={{
-                      backgroundColor: Colors.background.card,
-                      borderColor: Colors.border.light,
-                    }}
-                  >
-                    {currencies.map((curr) => (
-                      <TouchableOpacity
-                        key={curr.value}
-                        onPress={() => {
-                          setValue("currency", curr.value);
-                          setShowCurrencyPicker(false);
-                        }}
-                        className="flex-row items-center px-4 py-3 border-b"
-                        style={{ borderBottomColor: Colors.border.light }}
-                      >
-                        <Text
-                          className="font-medium"
-                          style={{ color: Colors.text.primary }}
-                        >
-                          {curr.value} ({curr.symbol})
-                        </Text>
-                        {selectedCurrency === curr.value && (
-                          <Ionicons
-                            name="checkmark"
-                            size={20}
-                            color={Colors.primary}
-                            style={{ marginLeft: "auto" }}
-                          />
-                        )}
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
                 {errors.price && (
                   <Text className="text-red-500 text-sm px-1">
                     {errors.price.message}
@@ -308,33 +348,58 @@ export default function AddSubscriptionModal({
                         borderColor: Colors.border.light,
                       }}
                     >
-                      {billingCycles.map((cycle) => (
-                        <TouchableOpacity
-                          key={cycle.value}
-                          onPress={() => onChange(cycle.value)}
-                          activeOpacity={0.7}
-                          style={[
-                            { flex: 1, paddingVertical: 10, borderRadius: 8 },
-                            value === cycle.value && {
-                              backgroundColor: Colors.primary,
-                            },
-                          ]}
-                        >
-                          <Text
-                            className="text-center text-sm"
-                            style={{
-                              fontWeight:
-                                value === cycle.value ? "bold" : "500",
-                              color:
-                                value === cycle.value
-                                  ? Colors.text.white
-                                  : Colors.text.secondary,
+                      {billingCycles.map((cycle) => {
+                        const isSelected = value === cycle.value;
+                        const scaleValue =
+                          cycle.value === "weekly"
+                            ? weeklyScale
+                            : cycle.value === "monthly"
+                              ? monthlyScale
+                              : yearlyScale;
+
+                        const animatedStyle = useAnimatedStyle(() => ({
+                          transform: [{ scale: scaleValue.value }],
+                        }));
+
+                        return (
+                          <TouchableOpacity
+                            key={cycle.value}
+                            onPress={() => {
+                              onChange(cycle.value);
+                              handleBillingCycleChange(
+                                cycle.value as "weekly" | "monthly" | "yearly",
+                              );
                             }}
+                            activeOpacity={0.7}
+                            style={{ flex: 1 }}
                           >
-                            {cycle.label}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
+                            <Animated.View
+                              style={[
+                                {
+                                  paddingVertical: 10,
+                                  borderRadius: 8,
+                                  backgroundColor: isSelected
+                                    ? Colors.primary
+                                    : "transparent",
+                                },
+                                animatedStyle,
+                              ]}
+                            >
+                              <Text
+                                className="text-center text-sm"
+                                style={{
+                                  fontWeight: isSelected ? "bold" : "500",
+                                  color: isSelected
+                                    ? Colors.text.white
+                                    : Colors.text.secondary,
+                                }}
+                              >
+                                {cycle.label}
+                              </Text>
+                            </Animated.View>
+                          </TouchableOpacity>
+                        );
+                      })}
                     </View>
                   )}
                 />

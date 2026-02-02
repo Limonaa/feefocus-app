@@ -52,7 +52,7 @@ export default function HomeScreen() {
             color={Colors.text.tertiary}
           />
           <Text className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-            {item.nextPaymentDate.toISOString().split("T")[0]}
+            {new Date(item.nextPaymentDate).toISOString().split("T")[0]}
           </Text>
         </View>
       </View>
