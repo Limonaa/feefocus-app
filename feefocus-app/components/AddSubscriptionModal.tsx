@@ -117,26 +117,23 @@ export default function AddSubscriptionModal({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1, backgroundColor: Colors.background.main }}
       >
-        <View className="flex-row items-center px-4 pt-12 pb-3 border-b" style={{ backgroundColor: Colors.background.main, borderBottomColor: Colors.border.light }}>
+        <View className="flex-row items-center px-4 pt-12" style={{ backgroundColor: Colors.background.main, borderBottomColor: Colors.border.light }}>
           <TouchableOpacity
             onPress={handleClose}
             className="w-12 h-12 items-center justify-center"
           >
             <Ionicons name="arrow-back" size={24} color={Colors.text.primary} />
           </TouchableOpacity>
-          <Text className="text-lg font-bold flex-1 text-center pr-12" style={{ color: Colors.text.primary }}>
-            Add New Subscription
-          </Text>
         </View>
 
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-          <View className="border-t mt-4" style={{ borderTopColor: Colors.border.light }}>
-            <Text className="text-lg font-bold px-4 pb-4 pt-6" style={{ color: Colors.text.primary }}>
+          <View style={{ borderTopColor: Colors.border.light }}>
+            <Text className="text-xl font-bold px-4 pb-4 text-center" style={{ color: Colors.text.primary }}>
               Subscription Details
             </Text>
 
-            <View className="px-4 space-y-5">
-              <View className="space-y-2">
+            <View className="px-4">
+              <View className="mb-2">
                 <Text className="text-sm font-medium px-1" style={{ color: Colors.text.secondary }}>
                   Service Name
                 </Text>
@@ -144,11 +141,13 @@ export default function AddSubscriptionModal({
                   control={control}
                   name="name"
                   render={({ field: { onChange, value } }) => (
-                    <View className="h-14 rounded-xl flex-row items-center px-4 border" style={{ backgroundColor: Colors.background.card, borderColor: Colors.border.light }}>
-                      <Ionicons name="apps" size={20} color={Colors.text.tertiary} />
+                    <View className="rounded-xl flex-row items-center px-4 border" 
+                          style={{ backgroundColor: Colors.background.card, borderColor: Colors.border.light }}>
                       <TextInput
-                        className="flex-1 ml-3 text-base font-medium"
-                        style={{ color: Colors.text.primary }}
+                        className="flex-1 text-base font-medium pb-2 min-h-14"
+                        style={{ 
+                          color: Colors.text.primary,
+                        }}
                         placeholder="e.g., Spotify"
                         placeholderTextColor={Colors.text.tertiary}
                         value={value}
@@ -164,7 +163,7 @@ export default function AddSubscriptionModal({
                 )}
               </View>
 
-              <View className="space-y-2">
+              <View className="mb-2">
                 <Text className="text-sm font-medium px-1" style={{ color: Colors.text.secondary }}>
                   Price
                 </Text>
@@ -188,9 +187,9 @@ export default function AddSubscriptionModal({
                     control={control}
                     name="price"
                     render={({ field: { onChange, value } }) => (
-                      <View className="flex-1 h-14 rounded-xl flex-row items-center px-4 border" style={{ backgroundColor: Colors.background.card, borderColor: Colors.border.light }}>
+                      <View className="flex-1 rounded-xl flex-row items-center px-4 border" style={{ backgroundColor: Colors.background.card, borderColor: Colors.border.light }}>
                         <TextInput
-                          className="flex-1 text-lg font-bold"
+                          className="flex-1 text-lg font-bold pb-2 min-h-14"
                           style={{ color: Colors.text.primary }}
                           placeholder="0.00"
                           placeholderTextColor={Colors.text.tertiary}
@@ -231,7 +230,7 @@ export default function AddSubscriptionModal({
                 )}
               </View>
 
-              <View className="space-y-2">
+              <View className="mb-2">
                 <Text className="text-sm font-medium px-1" style={{ color: Colors.text.secondary }}>
                   Billing Cycle
                 </Text>
@@ -266,7 +265,7 @@ export default function AddSubscriptionModal({
                 />
               </View>
 
-              <View className="space-y-2">
+              <View className="mb-2">
                 <Text className="text-sm font-medium px-1" style={{ color: Colors.text.secondary }}>
                   Category <Text style={{ color: Colors.text.tertiary }}>(optional)</Text>
                 </Text>
@@ -274,10 +273,10 @@ export default function AddSubscriptionModal({
                   control={control}
                   name="category"
                   render={({ field: { onChange, value } }) => (
-                    <View className="h-14 rounded-xl flex-row items-center px-4 border" style={{ backgroundColor: Colors.background.card, borderColor: Colors.border.light }}>
+                    <View className="rounded-xl flex-row items-center px-4 border" style={{ backgroundColor: Colors.background.card, borderColor: Colors.border.light }}>
                       <Ionicons name="apps-outline" size={20} color={Colors.text.tertiary} />
                       <TextInput
-                        className="flex-1 ml-3 text-base font-medium"
+                        className="flex-1 ml-3 text-base font-medium pb-2 min-h-14"
                         style={{ color: Colors.text.primary }}
                         placeholder="e.g., Entertainment"
                         placeholderTextColor={Colors.text.tertiary}
@@ -289,7 +288,7 @@ export default function AddSubscriptionModal({
                 />
               </View>
 
-              <View className="space-y-2">
+              <View>
                 <Text className="text-sm font-medium px-1" style={{ color: Colors.text.secondary }}>
                   Next Payment
                 </Text>
@@ -315,6 +314,7 @@ export default function AddSubscriptionModal({
                         </View>
                       </TouchableOpacity>
                       {showDatePicker && (
+                        <View className="items-center justify-center mt-2">
                           <DateTimePicker
                             value={value}
                             mode="date"
@@ -329,6 +329,7 @@ export default function AddSubscriptionModal({
                             themeVariant="light"
                             accentColor={Colors.primary}
                           />
+                        </View>
                       )}
                     </>
                   )}
@@ -340,7 +341,7 @@ export default function AddSubscriptionModal({
           <View className="h-32" />
         </ScrollView>
 
-        <View className="absolute bottom-0 left-0 right-0 p-4 border-t" style={{ backgroundColor: Colors.background.main + 'F2', borderTopColor: Colors.border.light }}>
+        <View className="absolute bottom-4 left-0 right-0 p-4" style={{ backgroundColor: Colors.background.main + 'F2', borderTopColor: Colors.border.light }}>
           <TouchableOpacity
             onPress={handleSubmit(onSubmit)}
             className="w-full py-4 rounded-xl flex-row items-center justify-center gap-2 shadow-xl"
@@ -348,7 +349,7 @@ export default function AddSubscriptionModal({
             activeOpacity={0.9}
           >
             <Ionicons name="add-circle" size={24} color={Colors.text.white} />
-            <Text className="text-white font-bold text-base">
+            <Text className="text-white font-bold text-lg">
               Add Subscription
             </Text>
           </TouchableOpacity>
