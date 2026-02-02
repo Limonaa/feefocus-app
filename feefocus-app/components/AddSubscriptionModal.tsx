@@ -7,27 +7,30 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-} from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useState } from 'react';
-import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
-import { Subscription } from '@/types/subscription';
-import { Colors } from '@/constants/colors';
+} from "react-native";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
+import { Subscription } from "@/types/subscription";
+import { Colors } from "@/constants/colors";
 
 const subscriptionSchema = z.object({
-  name: z.string().min(3, 'Name must be at least 3 characters'),
-  price: z.string().refine((val) => {
-    const normalized = val.replace(',', '.');
-    return !isNaN(Number(normalized)) && Number(normalized) > 0;
-  }, {
-    message: 'Price must be a positive number',
-  }),
-  currency: z.enum(['PLN', 'USD', 'EUR', 'GBP']),
-  billingCycle: z.enum(['monthly', 'weekly', 'yearly']),
+  name: z.string().min(3, "Name must be at least 3 characters"),
+  price: z.string().refine(
+    (val) => {
+      const normalized = val.replace(",", ".");
+      return !isNaN(Number(normalized)) && Number(normalized) > 0;
+    },
+    {
+      message: "Price must be a positive number",
+    },
+  ),
+  currency: z.enum(["PLN", "USD", "EUR", "GBP"]),
+  billingCycle: z.enum(["monthly", "weekly", "yearly"]),
   category: z.string().optional(),
   nextPaymentDate: z.date(),
 });
@@ -40,23 +43,25 @@ interface AddSubscriptionModalProps {
 }
 
 const currencies = [
-  { value: 'PLN', symbol: 'zł' },
-  { value: 'USD', symbol: '$' },
-  { value: 'EUR', symbol: '€' },
-  { value: 'GBP', symbol: '£' },
+  { value: "PLN", symbol: "zł" },
+  { value: "USD", symbol: "$" },
+  { value: "EUR", symbol: "€" },
+  { value: "GBP", symbol: "£" },
 ] as const;
 
 const billingCycles = [
-  { value: 'monthly', label: 'Monthly' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'yearly', label: 'Yearly' },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly" },
+  { value: "yearly", label: "Yearly" },
 ] as const;
 
 export default function AddSubscriptionModal({
   visible,
   onClose,
 }: AddSubscriptionModalProps) {
-  const addSubscription = useSubscriptionStore((state) => state.addSubscription);
+  const addSubscription = useSubscriptionStore(
+    (state) => state.addSubscription,
+  );
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -70,27 +75,27 @@ export default function AddSubscriptionModal({
   } = useForm<SubscriptionFormData>({
     resolver: zodResolver(subscriptionSchema),
     defaultValues: {
-      name: '',
-      price: '',
-      currency: 'PLN',
-      billingCycle: 'monthly',
-      category: '',
+      name: "",
+      price: "",
+      currency: "PLN",
+      billingCycle: "monthly",
+      category: "",
       nextPaymentDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     },
   });
 
-  const selectedCurrency = watch('currency');
-  const selectedBillingCycle = watch('billingCycle');
+  const selectedCurrency = watch("currency");
+  const selectedBillingCycle = watch("billingCycle");
 
   const onSubmit = (data: SubscriptionFormData) => {
-    const normalizedPrice = data.price.replace(',', '.');
+    const normalizedPrice = data.price.replace(",", ".");
     const newSubscription: Subscription = {
       id: Date.now().toString(),
       name: data.name,
       price: Number(normalizedPrice),
       currency: data.currency,
       billingCycle: data.billingCycle,
-      category: data.category || 'Other',
+      category: data.category || "Other",
       nextPaymentDate: data.nextPaymentDate,
     };
 
@@ -114,10 +119,16 @@ export default function AddSubscriptionModal({
       onRequestClose={handleClose}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1, backgroundColor: Colors.background.main }}
       >
-        <View className="flex-row items-center px-4 pt-12" style={{ backgroundColor: Colors.background.main, borderBottomColor: Colors.border.light }}>
+        <View
+          className="flex-row items-center px-4 pt-12"
+          style={{
+            backgroundColor: Colors.background.main,
+            borderBottomColor: Colors.border.light,
+          }}
+        >
           <TouchableOpacity
             onPress={handleClose}
             className="w-12 h-12 items-center justify-center"
@@ -128,24 +139,35 @@ export default function AddSubscriptionModal({
 
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           <View style={{ borderTopColor: Colors.border.light }}>
-            <Text className="text-xl font-bold px-4 pb-4 text-center" style={{ color: Colors.text.primary }}>
+            <Text
+              className="text-xl font-bold px-4 pb-4 text-center"
+              style={{ color: Colors.text.primary }}
+            >
               Subscription Details
             </Text>
 
             <View className="px-4">
               <View className="mb-2">
-                <Text className="text-sm font-medium px-1" style={{ color: Colors.text.secondary }}>
+                <Text
+                  className="text-sm font-medium px-1"
+                  style={{ color: Colors.text.secondary }}
+                >
                   Service Name
                 </Text>
                 <Controller
                   control={control}
                   name="name"
                   render={({ field: { onChange, value } }) => (
-                    <View className="rounded-xl flex-row items-center px-4 border" 
-                          style={{ backgroundColor: Colors.background.card, borderColor: Colors.border.light }}>
+                    <View
+                      className="rounded-xl flex-row items-center px-4 border"
+                      style={{
+                        backgroundColor: Colors.background.card,
+                        borderColor: Colors.border.light,
+                      }}
+                    >
                       <TextInput
                         className="flex-1 text-base font-medium pb-2 min-h-14"
-                        style={{ 
+                        style={{
                           color: Colors.text.primary,
                         }}
                         placeholder="e.g., Spotify"
@@ -164,7 +186,10 @@ export default function AddSubscriptionModal({
               </View>
 
               <View className="mb-2">
-                <Text className="text-sm font-medium px-1" style={{ color: Colors.text.secondary }}>
+                <Text
+                  className="text-sm font-medium px-1"
+                  style={{ color: Colors.text.secondary }}
+                >
                   Price
                 </Text>
                 <View className="flex-row gap-3">
@@ -173,12 +198,27 @@ export default function AddSubscriptionModal({
                     name="currency"
                     render={({ field: { value } }) => (
                       <TouchableOpacity
-                        onPress={() => setShowCurrencyPicker(!showCurrencyPicker)}
+                        onPress={() =>
+                          setShowCurrencyPicker(!showCurrencyPicker)
+                        }
                         className="w-28 h-14 rounded-xl flex-row items-center px-4 border"
-                        style={{ backgroundColor: Colors.background.card, borderColor: Colors.border.light }}
+                        style={{
+                          backgroundColor: Colors.background.card,
+                          borderColor: Colors.border.light,
+                        }}
                       >
-                        <Text className="font-medium" style={{ color: Colors.text.primary }}>{value}</Text>
-                        <Ionicons name="chevron-down" size={20} color={Colors.text.secondary} style={{ marginLeft: 'auto' }} />
+                        <Text
+                          className="font-medium"
+                          style={{ color: Colors.text.primary }}
+                        >
+                          {value}
+                        </Text>
+                        <Ionicons
+                          name="chevron-down"
+                          size={20}
+                          color={Colors.text.secondary}
+                          style={{ marginLeft: "auto" }}
+                        />
                       </TouchableOpacity>
                     )}
                   />
@@ -187,7 +227,13 @@ export default function AddSubscriptionModal({
                     control={control}
                     name="price"
                     render={({ field: { onChange, value } }) => (
-                      <View className="flex-1 rounded-xl flex-row items-center px-4 border" style={{ backgroundColor: Colors.background.card, borderColor: Colors.border.light }}>
+                      <View
+                        className="flex-1 rounded-xl flex-row items-center px-4 border"
+                        style={{
+                          backgroundColor: Colors.background.card,
+                          borderColor: Colors.border.light,
+                        }}
+                      >
                         <TextInput
                           className="flex-1 text-lg font-bold pb-2 min-h-14"
                           style={{ color: Colors.text.primary }}
@@ -202,22 +248,36 @@ export default function AddSubscriptionModal({
                   />
                 </View>
                 {showCurrencyPicker && (
-                  <View className="rounded-xl border overflow-hidden" style={{ backgroundColor: Colors.background.card, borderColor: Colors.border.light }}>
+                  <View
+                    className="rounded-xl border overflow-hidden"
+                    style={{
+                      backgroundColor: Colors.background.card,
+                      borderColor: Colors.border.light,
+                    }}
+                  >
                     {currencies.map((curr) => (
                       <TouchableOpacity
                         key={curr.value}
                         onPress={() => {
-                          setValue('currency', curr.value);
+                          setValue("currency", curr.value);
                           setShowCurrencyPicker(false);
                         }}
                         className="flex-row items-center px-4 py-3 border-b"
                         style={{ borderBottomColor: Colors.border.light }}
                       >
-                        <Text className="font-medium" style={{ color: Colors.text.primary }}>
+                        <Text
+                          className="font-medium"
+                          style={{ color: Colors.text.primary }}
+                        >
                           {curr.value} ({curr.symbol})
                         </Text>
                         {selectedCurrency === curr.value && (
-                          <Ionicons name="checkmark" size={20} color={Colors.primary} style={{ marginLeft: 'auto' }} />
+                          <Ionicons
+                            name="checkmark"
+                            size={20}
+                            color={Colors.primary}
+                            style={{ marginLeft: "auto" }}
+                          />
                         )}
                       </TouchableOpacity>
                     ))}
@@ -231,14 +291,23 @@ export default function AddSubscriptionModal({
               </View>
 
               <View className="mb-2">
-                <Text className="text-sm font-medium px-1" style={{ color: Colors.text.secondary }}>
+                <Text
+                  className="text-sm font-medium px-1"
+                  style={{ color: Colors.text.secondary }}
+                >
                   Billing Cycle
                 </Text>
                 <Controller
                   control={control}
                   name="billingCycle"
                   render={({ field: { onChange, value } }) => (
-                    <View className="flex-row p-1 rounded-xl border" style={{ backgroundColor: Colors.background.card, borderColor: Colors.border.light }}>
+                    <View
+                      className="flex-row p-1 rounded-xl border"
+                      style={{
+                        backgroundColor: Colors.background.card,
+                        borderColor: Colors.border.light,
+                      }}
+                    >
                       {billingCycles.map((cycle) => (
                         <TouchableOpacity
                           key={cycle.value}
@@ -246,14 +315,20 @@ export default function AddSubscriptionModal({
                           activeOpacity={0.7}
                           style={[
                             { flex: 1, paddingVertical: 10, borderRadius: 8 },
-                            value === cycle.value && { backgroundColor: Colors.primary }
+                            value === cycle.value && {
+                              backgroundColor: Colors.primary,
+                            },
                           ]}
                         >
                           <Text
                             className="text-center text-sm"
                             style={{
-                              fontWeight: value === cycle.value ? 'bold' : '500',
-                              color: value === cycle.value ? Colors.text.white : Colors.text.secondary
+                              fontWeight:
+                                value === cycle.value ? "bold" : "500",
+                              color:
+                                value === cycle.value
+                                  ? Colors.text.white
+                                  : Colors.text.secondary,
                             }}
                           >
                             {cycle.label}
@@ -266,15 +341,31 @@ export default function AddSubscriptionModal({
               </View>
 
               <View className="mb-2">
-                <Text className="text-sm font-medium px-1" style={{ color: Colors.text.secondary }}>
-                  Category <Text style={{ color: Colors.text.tertiary }}>(optional)</Text>
+                <Text
+                  className="text-sm font-medium px-1"
+                  style={{ color: Colors.text.secondary }}
+                >
+                  Category{" "}
+                  <Text style={{ color: Colors.text.tertiary }}>
+                    (optional)
+                  </Text>
                 </Text>
                 <Controller
                   control={control}
                   name="category"
                   render={({ field: { onChange, value } }) => (
-                    <View className="rounded-xl flex-row items-center px-4 border" style={{ backgroundColor: Colors.background.card, borderColor: Colors.border.light }}>
-                      <Ionicons name="apps-outline" size={20} color={Colors.text.tertiary} />
+                    <View
+                      className="rounded-xl flex-row items-center px-4 border"
+                      style={{
+                        backgroundColor: Colors.background.card,
+                        borderColor: Colors.border.light,
+                      }}
+                    >
+                      <Ionicons
+                        name="apps-outline"
+                        size={20}
+                        color={Colors.text.tertiary}
+                      />
                       <TextInput
                         className="flex-1 ml-3 text-base font-medium pb-2 min-h-14"
                         style={{ color: Colors.text.primary }}
@@ -289,7 +380,10 @@ export default function AddSubscriptionModal({
               </View>
 
               <View>
-                <Text className="text-sm font-medium px-1" style={{ color: Colors.text.secondary }}>
+                <Text
+                  className="text-sm font-medium px-1"
+                  style={{ color: Colors.text.secondary }}
+                >
                   Next Payment
                 </Text>
                 <Controller
@@ -301,16 +395,33 @@ export default function AddSubscriptionModal({
                         onPress={() => setShowDatePicker(true)}
                         activeOpacity={0.7}
                       >
-                        <View className="h-14 rounded-xl flex-row items-center px-4 border" style={{ backgroundColor: Colors.background.card, borderColor: Colors.border.light }}>
-                          <Ionicons name="calendar-outline" size={20} color={Colors.text.tertiary} />
-                          <Text className="flex-1 ml-3 text-base font-medium" style={{ color: Colors.text.primary }}>
-                            {value.toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
+                        <View
+                          className="h-14 rounded-xl flex-row items-center px-4 border"
+                          style={{
+                            backgroundColor: Colors.background.card,
+                            borderColor: Colors.border.light,
+                          }}
+                        >
+                          <Ionicons
+                            name="calendar-outline"
+                            size={20}
+                            color={Colors.text.tertiary}
+                          />
+                          <Text
+                            className="flex-1 ml-3 text-base font-medium"
+                            style={{ color: Colors.text.primary }}
+                          >
+                            {value.toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
                             })}
                           </Text>
-                          <Ionicons name="create-outline" size={20} color={Colors.text.secondary} />
+                          <Ionicons
+                            name="create-outline"
+                            size={20}
+                            color={Colors.text.secondary}
+                          />
                         </View>
                       </TouchableOpacity>
                       {showDatePicker && (
@@ -318,9 +429,11 @@ export default function AddSubscriptionModal({
                           <DateTimePicker
                             value={value}
                             mode="date"
-                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                            display={
+                              Platform.OS === "ios" ? "spinner" : "default"
+                            }
                             onChange={(event, selectedDate) => {
-                              setShowDatePicker(Platform.OS === 'ios');
+                              setShowDatePicker(Platform.OS === "ios");
                               if (selectedDate) {
                                 onChange(selectedDate);
                               }
@@ -341,7 +454,13 @@ export default function AddSubscriptionModal({
           <View className="h-32" />
         </ScrollView>
 
-        <View className="absolute bottom-4 left-0 right-0 p-4" style={{ backgroundColor: Colors.background.main + 'F2', borderTopColor: Colors.border.light }}>
+        <View
+          className="absolute bottom-4 left-0 right-0 p-4"
+          style={{
+            backgroundColor: Colors.background.main + "F2",
+            borderTopColor: Colors.border.light,
+          }}
+        >
           <TouchableOpacity
             onPress={handleSubmit(onSubmit)}
             className="w-full py-4 rounded-xl flex-row items-center justify-center gap-2 shadow-xl"
