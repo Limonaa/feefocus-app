@@ -6,11 +6,16 @@ import AddSubscriptionModal from "@/components/AddSubscriptionModal";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
 
+type SortType = "alphabetical" | "date" | "price" | "none";
+
 export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingSubscription, setEditingSubscription] = useState<
     Subscription | undefined
   >(undefined);
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const [sortType, setSortType] = useState<SortType>("none");
+  const [isReversed, setIsReversed] = useState(false);
   const subscriptions = useSubscriptionStore((state) => state.subscriptions);
   const updateExpiredSubscriptions = useSubscriptionStore(
     (state) => state.updateExpiredSubscriptions,
@@ -33,6 +38,58 @@ export default function HomeScreen() {
     const index = name.length % iconColors.length;
     return iconColors[index];
   };
+
+  const getDaysUntilPayment = (nextPaymentDate: Date | string): number => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const paymentDate = new Date(nextPaymentDate);
+    paymentDate.setHours(0, 0, 0, 0);
+
+    const diffTime = paymentDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return diffDays;
+  };
+
+  const getPaymentDateColor = (nextPaymentDate: Date | string): string => {
+    const daysUntil = getDaysUntilPayment(nextPaymentDate);
+
+    if (daysUntil <= 1) {
+      return Colors.error;
+    } else if (daysUntil <= 3) {
+      return Colors.warning;
+    }
+    return Colors.text.tertiary;
+  };
+
+  const getSortedSubscriptions = () => {
+    const sorted = [...subscriptions];
+
+    switch (sortType) {
+      case "alphabetical":
+        return sorted.sort((a, b) =>
+          isReversed
+            ? b.name.localeCompare(a.name)
+            : a.name.localeCompare(b.name),
+        );
+      case "date":
+        return sorted.sort((a, b) => {
+          const comparison =
+            new Date(a.nextPaymentDate).getTime() -
+            new Date(b.nextPaymentDate).getTime();
+          return isReversed ? -comparison : comparison;
+        });
+      case "price":
+        return sorted.sort((a, b) =>
+          isReversed ? a.price - b.price : b.price - a.price,
+        );
+      default:
+        return isReversed ? sorted.reverse() : sorted;
+    }
+  };
+
+  const sortedSubscriptions = getSortedSubscriptions();
 
   const totalMonthlyCost = subscriptions.reduce((total, sub) => {
     let monthlyPrice = sub.price;
@@ -77,9 +134,12 @@ export default function HomeScreen() {
           <Ionicons
             name="calendar-outline"
             size={12}
-            color={Colors.text.tertiary}
+            color={getPaymentDateColor(item.nextPaymentDate)}
           />
-          <Text className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+          <Text
+            className="text-xs font-medium uppercase tracking-wide"
+            style={{ color: getPaymentDateColor(item.nextPaymentDate) }}
+          >
             {new Date(item.nextPaymentDate).toISOString().split("T")[0]}
           </Text>
         </View>
@@ -142,6 +202,169 @@ export default function HomeScreen() {
         <Text className="text-lg font-bold text-gray-900 tracking-tight">
           Active Services
         </Text>
+        <View
+          className="flex-row items-center gap-2"
+          style={{ position: "relative" }}
+        >
+          <TouchableOpacity
+            onPress={() => setIsReversed(!isReversed)}
+            className="w-10 h-10 rounded-full bg-gray-200/50 items-center justify-center"
+          >
+            <Ionicons
+              name={isReversed ? "arrow-down" : "arrow-up"}
+              size={18}
+              color={isReversed ? Colors.primary : Colors.text.secondary}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setShowSortMenu(!showSortMenu)}
+            className="w-10 h-10 rounded-full bg-gray-200/50 items-center justify-center"
+          >
+            <Ionicons
+              name={sortType === "none" ? "funnel-outline" : "funnel"}
+              size={18}
+              color={
+                sortType === "none" ? Colors.text.secondary : Colors.primary
+              }
+            />
+          </TouchableOpacity>
+
+          {showSortMenu && (
+            <View
+              className="rounded-xl border overflow-hidden"
+              style={{
+                position: "absolute",
+                top: 45,
+                right: 0,
+                width: 180,
+                backgroundColor: "white",
+                borderColor: Colors.border.light,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.15,
+                shadowRadius: 8,
+                elevation: 8,
+                zIndex: 1000,
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => {
+                  setSortType("none");
+                  setShowSortMenu(false);
+                }}
+                className="flex-row items-center px-4 py-3 border-b"
+                style={{ borderBottomColor: Colors.border.light }}
+              >
+                <Ionicons
+                  name="list-outline"
+                  size={18}
+                  color={Colors.text.secondary}
+                />
+                <Text
+                  className="ml-3 font-medium"
+                  style={{ color: Colors.text.primary }}
+                >
+                  Default
+                </Text>
+                {sortType === "none" && (
+                  <Ionicons
+                    name="checkmark"
+                    size={20}
+                    color={Colors.primary}
+                    style={{ marginLeft: "auto" }}
+                  />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setSortType("alphabetical");
+                  setShowSortMenu(false);
+                }}
+                className="flex-row items-center px-4 py-3 border-b"
+                style={{ borderBottomColor: Colors.border.light }}
+              >
+                <Ionicons
+                  name="text-outline"
+                  size={18}
+                  color={Colors.text.secondary}
+                />
+                <Text
+                  className="ml-3 font-medium"
+                  style={{ color: Colors.text.primary }}
+                >
+                  Alphabetical
+                </Text>
+                {sortType === "alphabetical" && (
+                  <Ionicons
+                    name="checkmark"
+                    size={20}
+                    color={Colors.primary}
+                    style={{ marginLeft: "auto" }}
+                  />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setSortType("date");
+                  setShowSortMenu(false);
+                }}
+                className="flex-row items-center px-4 py-3 border-b"
+                style={{ borderBottomColor: Colors.border.light }}
+              >
+                <Ionicons
+                  name="calendar-outline"
+                  size={18}
+                  color={Colors.text.secondary}
+                />
+                <Text
+                  className="ml-3 font-medium"
+                  style={{ color: Colors.text.primary }}
+                >
+                  Payment Date
+                </Text>
+                {sortType === "date" && (
+                  <Ionicons
+                    name="checkmark"
+                    size={20}
+                    color={Colors.primary}
+                    style={{ marginLeft: "auto" }}
+                  />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setSortType("price");
+                  setShowSortMenu(false);
+                }}
+                className="flex-row items-center px-4 py-3"
+              >
+                <Ionicons
+                  name="cash-outline"
+                  size={18}
+                  color={Colors.text.secondary}
+                />
+                <Text
+                  className="ml-3 font-medium"
+                  style={{ color: Colors.text.primary }}
+                >
+                  Price
+                </Text>
+                {sortType === "price" && (
+                  <Ionicons
+                    name="checkmark"
+                    size={20}
+                    color={Colors.primary}
+                    style={{ marginLeft: "auto" }}
+                  />
+                )}
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
       </View>
 
       <ScrollView
@@ -156,7 +379,7 @@ export default function HomeScreen() {
             </Text>
           </View>
         ) : (
-          subscriptions.map((item) => (
+          sortedSubscriptions.map((item) => (
             <View key={item.id}>{renderSubscriptionItem({ item })}</View>
           ))
         )}
