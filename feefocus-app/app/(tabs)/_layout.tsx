@@ -17,7 +17,7 @@ export default function TabLayout() {
           height: 80,
           paddingBottom: 20,
           paddingTop: 8,
-          backgroundColor: Colors.opacity.white80,
+          backgroundColor: Colors.background.main,
           borderTopWidth: 1,
           borderTopColor: Colors.opacity.white30,
           position: 'absolute',

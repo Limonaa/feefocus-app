@@ -46,6 +46,7 @@ type SubscriptionFormData = z.infer<typeof subscriptionSchema>;
 interface AddSubscriptionModalProps {
   visible: boolean;
   onClose: () => void;
+  editSubscription?: Subscription;
 }
 
 const currencies = [
@@ -64,9 +65,13 @@ const billingCycles = [
 export default function AddSubscriptionModal({
   visible,
   onClose,
+  editSubscription,
 }: AddSubscriptionModalProps) {
   const addSubscription = useSubscriptionStore(
     (state) => state.addSubscription,
+  );
+  const updateSubscription = useSubscriptionStore(
+    (state) => state.updateSubscription,
   );
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -84,7 +89,14 @@ export default function AddSubscriptionModal({
     formState: { errors },
   } = useForm<SubscriptionFormData>({
     resolver: zodResolver(subscriptionSchema),
-    defaultValues: {
+    defaultValues: editSubscription ? {
+      name: editSubscription.name,
+      price: editSubscription.price.toString(),
+      currency: editSubscription.currency as "PLN" | "USD" | "EUR" | "GBP",
+      billingCycle: editSubscription.billingCycle,
+      category: editSubscription.category || "",
+      nextPaymentDate: new Date(editSubscription.nextPaymentDate),
+    } : {
       name: "",
       price: "",
       currency: "PLN",
@@ -114,17 +126,29 @@ export default function AddSubscriptionModal({
 
   const onSubmit = (data: SubscriptionFormData) => {
     const normalizedPrice = data.price.replace(",", ".");
-    const newSubscription: Subscription = {
-      id: Date.now().toString(),
-      name: data.name,
-      price: Number(normalizedPrice),
-      currency: data.currency,
-      billingCycle: data.billingCycle,
-      category: data.category || "Other",
-      nextPaymentDate: data.nextPaymentDate,
-    };
-
-    addSubscription(newSubscription);
+    
+    if (editSubscription) {
+      updateSubscription(editSubscription.id, {
+        name: data.name,
+        price: Number(normalizedPrice),
+        currency: data.currency,
+        billingCycle: data.billingCycle,
+        category: data.category || "Other",
+        nextPaymentDate: data.nextPaymentDate,
+      });
+    } else {
+      const newSubscription: Subscription = {
+        id: Date.now().toString(),
+        name: data.name,
+        price: Number(normalizedPrice),
+        currency: data.currency,
+        billingCycle: data.billingCycle,
+        category: data.category || "Other",
+        nextPaymentDate: data.nextPaymentDate,
+      };
+      addSubscription(newSubscription);
+    }
+    
     reset();
     onClose();
   };
@@ -168,7 +192,7 @@ export default function AddSubscriptionModal({
               className="text-xl font-bold px-4 pb-4 text-center"
               style={{ color: Colors.text.primary }}
             >
-              Subscription Details
+              {editSubscription ? 'Edit Subscription' : 'Subscription Details'}
             </Text>
 
             <View className="px-4">
@@ -532,9 +556,9 @@ export default function AddSubscriptionModal({
             style={{ backgroundColor: Colors.primary }}
             activeOpacity={0.9}
           >
-            <Ionicons name="add-circle" size={24} color={Colors.text.white} />
+            <Ionicons name={editSubscription ? "checkmark-circle" : "add-circle"} size={24} color={Colors.text.white} />
             <Text className="text-white font-bold text-lg">
-              Add Subscription
+              {editSubscription ? 'Update Subscription' : 'Add Subscription'}
             </Text>
           </TouchableOpacity>
         </View>

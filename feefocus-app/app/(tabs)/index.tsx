@@ -8,6 +8,7 @@ import { Colors } from "@/constants/colors";
 
 export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
+  const [editingSubscription, setEditingSubscription] = useState<Subscription | undefined>(undefined);
   const subscriptions = useSubscriptionStore((state) => state.subscriptions);
 
   const totalMonthlyCost = subscriptions.reduce((total, sub) => {
@@ -32,6 +33,10 @@ export default function HomeScreen() {
     <TouchableOpacity
       className="flex-row items-center gap-4 bg-white border border-gray-200 rounded-2xl p-4 mb-3"
       activeOpacity={0.7}
+      onPress={() => {
+        setEditingSubscription(item);
+        setModalVisible(true);
+      }}
     >
       <View
         className="w-14 h-14 rounded-xl items-center justify-center"
@@ -81,7 +86,7 @@ export default function HomeScreen() {
       </View>
 
       <View
-        className="mx-4 mt-4 mb-2 rounded-2xl p-6 relative overflow-hidden shadow-xl"
+        className="mx-4 mb-2 rounded-2xl p-6 relative overflow-hidden shadow-xl"
         style={{ backgroundColor: Colors.primary }}
       >
         <View className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/10" />
@@ -145,7 +150,11 @@ export default function HomeScreen() {
 
       <AddSubscriptionModal
         visible={modalVisible}
-        onClose={() => setModalVisible(false)}
+        onClose={() => {
+          setModalVisible(false);
+          setEditingSubscription(undefined);
+        }}
+        editSubscription={editingSubscription}
       />
     </View>
   );
