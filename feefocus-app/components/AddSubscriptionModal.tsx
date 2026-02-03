@@ -11,7 +11,7 @@ import {
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Animated, {
@@ -89,25 +89,51 @@ export default function AddSubscriptionModal({
     formState: { errors },
   } = useForm<SubscriptionFormData>({
     resolver: zodResolver(subscriptionSchema),
-    defaultValues: editSubscription ? {
-      name: editSubscription.name,
-      price: editSubscription.price.toString(),
-      currency: editSubscription.currency as "PLN" | "USD" | "EUR" | "GBP",
-      billingCycle: editSubscription.billingCycle,
-      category: editSubscription.category || "",
-      nextPaymentDate: new Date(editSubscription.nextPaymentDate),
-    } : {
-      name: "",
-      price: "",
-      currency: "PLN",
-      billingCycle: "monthly",
-      category: "",
-      nextPaymentDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    },
+    defaultValues: editSubscription
+      ? {
+          name: editSubscription.name,
+          price: editSubscription.price.toString(),
+          currency: editSubscription.currency as "PLN" | "USD" | "EUR" | "GBP",
+          billingCycle: editSubscription.billingCycle,
+          category: editSubscription.category || "",
+          nextPaymentDate: new Date(editSubscription.nextPaymentDate),
+        }
+      : {
+          name: "",
+          price: "",
+          currency: "PLN",
+          billingCycle: "monthly",
+          category: "",
+          nextPaymentDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        },
   });
 
   const selectedCurrency = watch("currency");
   const selectedBillingCycle = watch("billingCycle");
+
+  useEffect(() => {
+    if (visible) {
+      if (editSubscription) {
+        reset({
+          name: editSubscription.name,
+          price: editSubscription.price.toString(),
+          currency: editSubscription.currency as "PLN" | "USD" | "EUR" | "GBP",
+          billingCycle: editSubscription.billingCycle,
+          category: editSubscription.category || "",
+          nextPaymentDate: new Date(editSubscription.nextPaymentDate),
+        });
+      } else {
+        reset({
+          name: "",
+          price: "",
+          currency: "PLN",
+          billingCycle: "monthly",
+          category: "",
+          nextPaymentDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        });
+      }
+    }
+  }, [visible, editSubscription, reset]);
 
   const handleBillingCycleChange = (value: "weekly" | "monthly" | "yearly") => {
     const scaleValue =
@@ -126,7 +152,7 @@ export default function AddSubscriptionModal({
 
   const onSubmit = (data: SubscriptionFormData) => {
     const normalizedPrice = data.price.replace(",", ".");
-    
+
     if (editSubscription) {
       updateSubscription(editSubscription.id, {
         name: data.name,
@@ -148,7 +174,7 @@ export default function AddSubscriptionModal({
       };
       addSubscription(newSubscription);
     }
-    
+
     reset();
     onClose();
   };
@@ -192,7 +218,7 @@ export default function AddSubscriptionModal({
               className="text-xl font-bold px-4 pb-4 text-center"
               style={{ color: Colors.text.primary }}
             >
-              {editSubscription ? 'Edit Subscription' : 'Subscription Details'}
+              {editSubscription ? "Edit Subscription" : "Subscription Details"}
             </Text>
 
             <View className="px-4">
@@ -556,9 +582,13 @@ export default function AddSubscriptionModal({
             style={{ backgroundColor: Colors.primary }}
             activeOpacity={0.9}
           >
-            <Ionicons name={editSubscription ? "checkmark-circle" : "add-circle"} size={24} color={Colors.text.white} />
+            <Ionicons
+              name={editSubscription ? "checkmark-circle" : "add-circle"}
+              size={24}
+              color={Colors.text.white}
+            />
             <Text className="text-white font-bold text-lg">
-              {editSubscription ? 'Update Subscription' : 'Add Subscription'}
+              {editSubscription ? "Update Subscription" : "Add Subscription"}
             </Text>
           </TouchableOpacity>
         </View>

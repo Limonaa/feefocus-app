@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { Subscription } from "@/types/subscription";
 import AddSubscriptionModal from "@/components/AddSubscriptionModal";
@@ -8,8 +8,31 @@ import { Colors } from "@/constants/colors";
 
 export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
-  const [editingSubscription, setEditingSubscription] = useState<Subscription | undefined>(undefined);
+  const [editingSubscription, setEditingSubscription] = useState<
+    Subscription | undefined
+  >(undefined);
   const subscriptions = useSubscriptionStore((state) => state.subscriptions);
+  const updateExpiredSubscriptions = useSubscriptionStore(
+    (state) => state.updateExpiredSubscriptions,
+  );
+
+  useEffect(() => {
+    updateExpiredSubscriptions();
+  }, [updateExpiredSubscriptions]);
+
+  const iconColors = [
+    "#64748b",
+    "#3b82f6",
+    "#6366f1",
+    "#8b5cf6",
+    "#0ea5e9",
+    "#475569",
+  ];
+
+  const getColorForName = (name: string) => {
+    const index = name.length % iconColors.length;
+    return iconColors[index];
+  };
 
   const totalMonthlyCost = subscriptions.reduce((total, sub) => {
     let monthlyPrice = sub.price;
@@ -40,7 +63,7 @@ export default function HomeScreen() {
     >
       <View
         className="w-14 h-14 rounded-xl items-center justify-center"
-        style={{ backgroundColor: Colors.primary }}
+        style={{ backgroundColor: getColorForName(item.name) }}
       >
         <Text className="text-white text-2xl font-bold">
           {item.name.charAt(0).toUpperCase()}
