@@ -250,29 +250,29 @@ export default function StatsScreen() {
             </View>
           )}
         </View>
+
+        <View className="h-0.5 bg-gray-300 mb-4 rounded-full" />
+
         <View
-          className="rounded-2xl p-6 border w-full"
-          style={{
-            backgroundColor: Colors.background.card,
-            borderColor: Colors.border.light,
-          }}
+          className="mb-2 rounded-2xl p-6 relative overflow-hidden shadow-xl"
+          style={{ backgroundColor: Colors.primary }}
         >
-          <Text
-            className="font-medium mb-3"
-            style={{ color: Colors.text.secondary }}
-          >
-            Avg Day Spendings
-          </Text>
-          <Text
-            className="text-3xl font-bold"
-            style={{ color: Colors.primary }}
-          >
-            {getAvgDaySpending().toFixed(2)} PLN
-          </Text>
+          <View className="absolute right-24 -top-5 w-12 h-12 rounded-full bg-white/30" />
+          <View className="absolute -right-6 -bottom-8 w-20 h-20 rounded-full bg-black/30" />
+          <View className="absolute -left-2 -bottom-8 w-16 h-16 rounded-full bg-black/10" />
+
+          <View className="relative z-10">
+            <Text className="text-white/80 text-xs font-semibold uppercase tracking-wider mb-1">
+              avg day spendings
+            </Text>
+            <Text className="text-4xl font-extrabold text-white tracking-tight">
+              {getAvgDaySpending().toFixed(2)} PLN
+            </Text>
+          </View>
         </View>
 
         <View
-          className="mt-6 mb-20 rounded-2xl overflow-hidden border"
+          className="mt-4 mb-20 rounded-2xl overflow-hidden border"
           style={{
             backgroundColor: Colors.background.card,
             borderColor: Colors.border.light,
