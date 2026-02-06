@@ -4,6 +4,7 @@ import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { Subscription } from "@/types/subscription";
 import { Colors } from "@/constants/colors";
 import { PieChart } from "react-native-gifted-charts";
+import { Calendar } from "react-native-calendars";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -72,20 +73,6 @@ export default function StatsScreen() {
     }, 0);
   };
 
-  const getActiveSubscriptions = () => {
-    return subscriptions.filter((sub) => {
-      const nextPaymentDate = new Date(sub.nextPaymentDate);
-      return nextPaymentDate > new Date();
-    }).length;
-  };
-
-  const getExpiredSubscriptions = () => {
-    return subscriptions.filter((sub) => {
-      const nextPaymentDate = new Date(sub.nextPaymentDate);
-      return nextPaymentDate <= new Date();
-    }).length;
-  };
-
   const getPieChartData = () => {
     const colors = [
       "#f59e0b",
@@ -109,9 +96,49 @@ export default function StatsScreen() {
     }));
   };
 
+  const getMarkedDates = () => {
+    const marked: { [key: string]: any } = {};
+    subscriptions.forEach((sub) => {
+      const dateStr = new Date(sub.nextPaymentDate).toISOString().split("T")[0];
+      marked[dateStr] = {
+        marked: true,
+        dotColor: Colors.primary,
+        selectedColor: Colors.primary,
+        selectedTextColor: Colors.text.white,
+        selectedDayBackgroundColor: Colors.primary,
+        customStyles: {
+          text: {
+            fontWeight: "bold",
+            color: Colors.text.white,
+          },
+          container: {
+            backgroundColor: Colors.primary,
+          },
+        },
+      };
+    });
+    return marked;
+  };
+
+  const getAvgDaySpending = () => {
+    return subscriptions.reduce((total, sub) => {
+      let dailyCost = 0;
+      switch (sub.billingCycle) {
+        case "weekly":
+          dailyCost = sub.price / 7;
+          break;
+        case "monthly":
+          dailyCost = sub.price / 30;
+          break;
+        case "yearly":
+          dailyCost = sub.price / 365;
+          break;
+      }
+      return total + dailyCost;
+    }, 0);
+  };
+
   const totalCost = getTotalCost(selectedPeriod);
-  const activeSubs = getActiveSubscriptions();
-  const expiredSubs = getExpiredSubscriptions();
 
   return (
     <ScrollView
@@ -126,163 +153,161 @@ export default function StatsScreen() {
         >
           Statistics
         </Text>
+        <View className="p-4">
+          <View
+            className="flex-row p-1 rounded-xl border mb-6"
+            style={{
+              backgroundColor: Colors.background.main,
+              borderColor: Colors.border.light,
+            }}
+          >
+            {periods.map((period) => {
+              const isSelected = selectedPeriod === period.value;
+              const scaleValue =
+                period.value === "monthly" ? monthlyScale : yearlyScale;
 
+              const animatedStyle = useAnimatedStyle(() => ({
+                transform: [{ scale: scaleValue.value }],
+              }));
+
+              return (
+                <TouchableOpacity
+                  key={period.value}
+                  onPress={() => handlePeriodChange(period.value)}
+                  activeOpacity={0.7}
+                  style={{ flex: 1 }}
+                >
+                  <Animated.View
+                    style={[
+                      {
+                        paddingVertical: 10,
+                        borderRadius: 8,
+                        backgroundColor: isSelected
+                          ? Colors.primary
+                          : "transparent",
+                      },
+                      animatedStyle,
+                    ]}
+                  >
+                    <Text
+                      className="text-center"
+                      style={{
+                        fontWeight: isSelected ? "bold" : "500",
+                        color: isSelected
+                          ? Colors.text.white
+                          : Colors.text.secondary,
+                      }}
+                    >
+                      {period.label}
+                    </Text>
+                  </Animated.View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {subscriptions.length > 0 && (
+            <View className="items-center">
+              <PieChart
+                data={getPieChartData()}
+                donut
+                radius={120}
+                innerRadius={80}
+                textColor={Colors.text.primary}
+                textSize={10}
+                centerLabelComponent={() => (
+                  <View className="items-center">
+                    <Text
+                      className="text-base font-bold"
+                      style={{ color: Colors.text.secondary }}
+                    >
+                      Total Spend
+                    </Text>
+                    <Text
+                      className="text-2xl font-extrabold mt-1"
+                      style={{ color: Colors.primary }}
+                    >
+                      {totalCost.toFixed(2)} PLN
+                    </Text>
+                  </View>
+                )}
+              />
+              <View className="mt-6 flex-row flex-wrap justify-start">
+                {getPieChartData().map((item, index) => (
+                  <View
+                    key={index}
+                    className="w-1/4 flex-row items-center gap-2 mb-4 px-1"
+                  >
+                    <View
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <Text style={{ color: Colors.text.secondary }}>
+                      {item.text}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+        </View>
         <View
-          className="rounded-2xl border mb-6"
+          className="rounded-2xl p-6 border w-full"
           style={{
             backgroundColor: Colors.background.card,
             borderColor: Colors.border.light,
           }}
         >
-          <View className="p-6">
-            <View
-              className="flex-row p-1 rounded-xl border mb-6"
-              style={{
-                backgroundColor: Colors.background.main,
-                borderColor: Colors.border.light,
-              }}
-            >
-              {periods.map((period) => {
-                const isSelected = selectedPeriod === period.value;
-                const scaleValue =
-                  period.value === "monthly" ? monthlyScale : yearlyScale;
-
-                const animatedStyle = useAnimatedStyle(() => ({
-                  transform: [{ scale: scaleValue.value }],
-                }));
-
-                return (
-                  <TouchableOpacity
-                    key={period.value}
-                    onPress={() => handlePeriodChange(period.value)}
-                    activeOpacity={0.7}
-                    style={{ flex: 1 }}
-                  >
-                    <Animated.View
-                      style={[
-                        {
-                          paddingVertical: 10,
-                          borderRadius: 8,
-                          backgroundColor: isSelected
-                            ? Colors.primary
-                            : "transparent",
-                        },
-                        animatedStyle,
-                      ]}
-                    >
-                      <Text
-                        className="text-center text-sm"
-                        style={{
-                          fontWeight: isSelected ? "bold" : "500",
-                          color: isSelected
-                            ? Colors.text.white
-                            : Colors.text.secondary,
-                        }}
-                      >
-                        {period.label}
-                      </Text>
-                    </Animated.View>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            {subscriptions.length > 0 && (
-              <View className="items-center">
-                <PieChart
-                  data={getPieChartData()}
-                  donut
-                  radius={120}
-                  innerRadius={80}
-                  textColor={Colors.text.primary}
-                  textSize={10}
-                  centerLabelComponent={() => (
-                    <View className="items-center">
-                      <Text
-                        className="text-base font-bold"
-                        style={{ color: Colors.text.secondary }}
-                      >
-                        Total Spend
-                      </Text>
-                      <Text
-                        className="text-2xl font-extrabold mt-1"
-                        style={{ color: Colors.primary }}
-                      >
-                        {totalCost.toFixed(2)} PLN
-                      </Text>
-                    </View>
-                  )}
-                />
-              </View>
-            )}
-          </View>
+          <Text
+            className="font-medium mb-3"
+            style={{ color: Colors.text.secondary }}
+          >
+            Avg Day Spendings
+          </Text>
+          <Text
+            className="text-3xl font-bold"
+            style={{ color: Colors.primary }}
+          >
+            {getAvgDaySpending().toFixed(2)} PLN
+          </Text>
         </View>
 
-        <View className="gap-4">
-          <View
-            className="rounded-2xl p-6 border"
-            style={{
-              backgroundColor: Colors.background.card,
-              borderColor: Colors.border.light,
-            }}
+        <View
+          className="mt-6 mb-20 rounded-2xl overflow-hidden border"
+          style={{
+            backgroundColor: Colors.background.card,
+            borderColor: Colors.border.light,
+          }}
+        >
+          <Text
+            className="text-2xl font-bold text-center mt-3"
+            style={{ color: Colors.text.secondary }}
           >
-            <Text
-              className="text-sm font-medium mb-3"
-              style={{ color: Colors.text.secondary }}
-            >
-              Total Cost ({selectedPeriod === "monthly" ? "Monthly" : "Yearly"})
-            </Text>
-            <Text
-              className="text-3xl font-bold"
-              style={{ color: Colors.primary }}
-            >
-              {totalCost.toFixed(2)} PLN
-            </Text>
-          </View>
-
-          <View
-            className="rounded-2xl p-6 border"
-            style={{
+            Billing Schedule
+          </Text>
+          <Calendar
+            current={new Date().toISOString().split("T")[0]}
+            markedDates={getMarkedDates()}
+            markingType={"custom"}
+            theme={{
               backgroundColor: Colors.background.card,
-              borderColor: Colors.border.light,
+              calendarBackground: Colors.background.card,
+              textSectionTitleColor: Colors.text.secondary,
+              textSectionTitleDisabledColor: Colors.text.secondary,
+              selectedDayBackgroundColor: Colors.primary,
+              selectedDayTextColor: Colors.text.white,
+              todayTextColor: Colors.primary,
+              dayTextColor: Colors.text.primary,
+              textDisabledColor: Colors.text.secondary,
+              dotColor: Colors.primary,
+              selectedDotColor: Colors.text.white,
+              arrowColor: Colors.primary,
+              monthTextColor: Colors.text.primary,
+              textDayFontFamily: "System",
+              textMonthFontSize: 16,
+              textDayFontSize: 14,
             }}
-          >
-            <Text
-              className="text-sm font-medium mb-3"
-              style={{ color: Colors.text.secondary }}
-            >
-              Active Subscriptions
-            </Text>
-            <Text
-              className="text-3xl font-bold"
-              style={{ color: Colors.primary }}
-            >
-              {activeSubs}
-            </Text>
-          </View>
-
-          {expiredSubs > 0 && (
-            <View
-              className="rounded-2xl p-6 border"
-              style={{
-                backgroundColor: Colors.background.card,
-                borderColor: Colors.border.light,
-              }}
-            >
-              <Text
-                className="text-sm font-medium mb-3"
-                style={{ color: Colors.text.secondary }}
-              >
-                Expired Subscriptions
-              </Text>
-              <Text
-                className="text-3xl font-bold"
-                style={{ color: Colors.error }}
-              >
-                {expiredSubs}
-              </Text>
-            </View>
-          )}
+          />
         </View>
       </View>
     </ScrollView>
