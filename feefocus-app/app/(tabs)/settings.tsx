@@ -10,9 +10,11 @@ import { useState } from "react";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { Colors } from "@/constants/colors";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import CurrencyModal from "@/components/CurrencyModal";
 
 export default function SettingsScreen() {
   const [currency, setCurrency] = useState("PLN");
+  const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
   const [upcomingPaymentsNotif, setUpcomingPaymentsNotif] = useState(true);
   const [monthlySummaryNotif, setMonthlySummaryNotif] = useState(true);
   const deleteSubscriptions = useSubscriptionStore(
@@ -68,7 +70,10 @@ export default function SettingsScreen() {
                 borderColor: Colors.border.light,
               }}
             >
-              <TouchableOpacity className="flex-row items-center px-4 py-4 gap-4 active:opacity-70">
+              <TouchableOpacity
+                onPress={() => setCurrencyModalVisible(true)}
+                className="flex-row items-center px-4 py-4 gap-4 active:opacity-70"
+              >
                 <View
                   className="flex items-center justify-center w-10 h-10 rounded-lg"
                   style={{ backgroundColor: `${Colors.primary}20` }}
@@ -179,7 +184,13 @@ export default function SettingsScreen() {
             </View>
           </View>
 
-          <View className="pt-4 mb-8">
+          <Text
+            className="text-xs font-semibold mb-3 px-2 uppercase tracking-wider"
+            style={{ color: Colors.text.secondary }}
+          >
+            storage
+          </Text>
+          <View className="mb-8">
             <TouchableOpacity
               onPress={handleClearData}
               className="rounded-2xl px-6 py-4 border"
@@ -213,6 +224,13 @@ export default function SettingsScreen() {
           v0.3.1
         </Text>
       </View>
+
+      <CurrencyModal
+        visible={currencyModalVisible}
+        onClose={() => setCurrencyModalVisible(false)}
+        selectedCurrency={currency}
+        onSelectCurrency={setCurrency}
+      />
     </View>
   );
 }

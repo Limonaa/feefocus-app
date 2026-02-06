@@ -146,14 +146,13 @@ export default function StatsScreen() {
       style={{ backgroundColor: Colors.background.main }}
       showsVerticalScrollIndicator={false}
     >
-      <View className="px-4 pt-12 pb-6">
-        <Text
-          className="text-3xl font-bold mb-6 text-center"
-          style={{ color: Colors.text.primary }}
-        >
-          Statistics
-        </Text>
-        <View className="p-4">
+      <View className="px-4">
+        <View className="flex-row items-center pt-14 justify-between pb-4 bg-[#f6f6f8]">
+          <Text className="text-lg font-extrabold text-gray-900 tracking-tight">
+            FeeFocus
+          </Text>
+        </View>
+        <View>
           <View
             className="flex-row p-1 rounded-xl border mb-6"
             style={{

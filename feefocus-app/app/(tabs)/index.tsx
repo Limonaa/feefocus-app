@@ -159,7 +159,7 @@ export default function HomeScreen() {
 
   return (
     <View className="flex-1 bg-[#f6f6f8]">
-      <View className="flex-row items-center justify-between px-4 pt-14 pb-4 bg-[#f6f6f8]">
+      <View className="flex-row justify-between px-4 pt-14 pb-4 bg-[#f6f6f8]">
         <Text className="text-lg font-extrabold text-gray-900 tracking-tight">
           FeeFocus
         </Text>
