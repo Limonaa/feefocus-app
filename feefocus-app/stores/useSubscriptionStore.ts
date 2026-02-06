@@ -11,6 +11,7 @@ interface SubscriptionStore {
   getSubscriptionById: (id: string) => Subscription | undefined;
   getTotalMonthlySpending: () => number;
   updateExpiredSubscriptions: () => void;
+  deleteSubscriptions: () => void;
 }
 
 export const useSubscriptionStore = create<SubscriptionStore>()(
@@ -90,6 +91,10 @@ export const useSubscriptionStore = create<SubscriptionStore>()(
             return sub;
           }),
         }));
+      },
+
+      deleteSubscriptions: () => {
+        set({ subscriptions: [] });
       },
     }),
     {
