@@ -73,6 +73,9 @@ export default function AddSubscriptionModal({
   const updateSubscription = useSubscriptionStore(
     (state) => state.updateSubscription,
   );
+  const removeSubscription = useSubscriptionStore(
+    (state) => state.removeSubscription,
+  );
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -186,6 +189,13 @@ export default function AddSubscriptionModal({
     onClose();
   };
 
+  const handleDeleteSubscription = () => {
+    if (editSubscription) {
+      removeSubscription(editSubscription.id);
+      handleClose();
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -198,7 +208,7 @@ export default function AddSubscriptionModal({
         style={{ flex: 1, backgroundColor: Colors.background.main }}
       >
         <View
-          className="flex-row items-center px-4 pt-12"
+          className="flex-row items-center justify-between px-4 pt-12"
           style={{
             backgroundColor: Colors.background.main,
             borderBottomColor: Colors.border.light,
@@ -210,6 +220,15 @@ export default function AddSubscriptionModal({
           >
             <Ionicons name="arrow-back" size={24} color={Colors.text.primary} />
           </TouchableOpacity>
+
+          {editSubscription && (
+            <TouchableOpacity
+              onPress={handleDeleteSubscription}
+              className="w-12 h-12 items-center justify-center"
+            >
+              <Ionicons name="trash" size={24} color={Colors.error} />
+            </TouchableOpacity>
+          )}
         </View>
 
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
