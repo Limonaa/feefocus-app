@@ -1,6 +1,8 @@
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { useState, useEffect } from "react";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
+import { useSettingsStore } from "@/stores/useSettingsStore";
+import { convertCurrency } from "@/utils/currency";
 import { Subscription } from "@/types/subscription";
 import { Colors } from "@/constants/colors";
 import { PieChart } from "react-native-gifted-charts";
@@ -21,6 +23,7 @@ const periods = [
 export default function StatsScreen() {
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>("monthly");
   const subscriptions = useSubscriptionStore((state) => state.subscriptions);
+  const defaultCurrency = useSettingsStore((state) => state.defaultCurrency);
   const updateExpiredSubscriptions = useSubscriptionStore(
     (state) => state.updateExpiredSubscriptions,
   );
@@ -69,7 +72,12 @@ export default function StatsScreen() {
         }
       }
 
-      return total + cost;
+      const convertedCost = convertCurrency(
+        cost,
+        sub.currency,
+        defaultCurrency,
+      );
+      return total + convertedCost;
     }, 0);
   };
 
@@ -134,7 +142,12 @@ export default function StatsScreen() {
           dailyCost = sub.price / 365;
           break;
       }
-      return total + dailyCost;
+      const convertedDailyCost = convertCurrency(
+        dailyCost,
+        sub.currency,
+        defaultCurrency,
+      );
+      return total + convertedDailyCost;
     }, 0);
   };
 
@@ -226,7 +239,7 @@ export default function StatsScreen() {
                       className="text-2xl font-extrabold mt-1"
                       style={{ color: Colors.primary }}
                     >
-                      {totalCost.toFixed(2)} PLN
+                      {totalCost.toFixed(2)} {defaultCurrency}
                     </Text>
                   </View>
                 )}
@@ -266,7 +279,7 @@ export default function StatsScreen() {
               avg day spendings
             </Text>
             <Text className="text-4xl font-extrabold text-white tracking-tight">
-              {getAvgDaySpending().toFixed(2)} PLN
+              {getAvgDaySpending().toFixed(2)} {defaultCurrency}
             </Text>
           </View>
         </View>

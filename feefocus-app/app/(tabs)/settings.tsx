@@ -8,12 +8,16 @@ import {
 } from "react-native";
 import { useState } from "react";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
+import { useSettingsStore } from "@/stores/useSettingsStore";
 import { Colors } from "@/constants/colors";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import CurrencyModal from "@/components/CurrencyModal";
 
 export default function SettingsScreen() {
-  const [currency, setCurrency] = useState("PLN");
+  const defaultCurrency = useSettingsStore((state) => state.defaultCurrency);
+  const setDefaultCurrency = useSettingsStore(
+    (state) => state.setDefaultCurrency,
+  );
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
   const [upcomingPaymentsNotif, setUpcomingPaymentsNotif] = useState(true);
   const [monthlySummaryNotif, setMonthlySummaryNotif] = useState(true);
@@ -96,7 +100,7 @@ export default function SettingsScreen() {
                       className="text-lg"
                       style={{ color: Colors.text.secondary }}
                     >
-                      {currency}
+                      {defaultCurrency}
                     </Text>
                     <MaterialIcons
                       name="chevron-right"
@@ -228,8 +232,8 @@ export default function SettingsScreen() {
       <CurrencyModal
         visible={currencyModalVisible}
         onClose={() => setCurrencyModalVisible(false)}
-        selectedCurrency={currency}
-        onSelectCurrency={setCurrency}
+        selectedCurrency={defaultCurrency}
+        onSelectCurrency={setDefaultCurrency}
       />
     </View>
   );

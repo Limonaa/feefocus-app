@@ -1,8 +1,11 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { useState, useEffect } from "react";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
+import { useSettingsStore } from "@/stores/useSettingsStore";
+import { convertCurrency } from "@/utils/currency";
 import { Subscription } from "@/types/subscription";
 import AddSubscriptionModal from "@/components/AddSubscriptionModal";
+import SwipeableItem from "@/components/SwipeableItem";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
 
@@ -17,6 +20,10 @@ export default function HomeScreen() {
   const [sortType, setSortType] = useState<SortType>("none");
   const [isReversed, setIsReversed] = useState(false);
   const subscriptions = useSubscriptionStore((state) => state.subscriptions);
+  const removeSubscription = useSubscriptionStore(
+    (state) => state.removeSubscription,
+  );
+  const defaultCurrency = useSettingsStore((state) => state.defaultCurrency);
   const updateExpiredSubscriptions = useSubscriptionStore(
     (state) => state.updateExpiredSubscriptions,
   );
@@ -106,18 +113,17 @@ export default function HomeScreen() {
         break;
     }
 
-    return total + monthlyPrice;
+    const convertedPrice = convertCurrency(
+      monthlyPrice,
+      sub.currency,
+      defaultCurrency,
+    );
+
+    return total + convertedPrice;
   }, 0);
 
   const renderSubscriptionItem = ({ item }: { item: Subscription }) => (
-    <TouchableOpacity
-      className="flex-row items-center gap-4 bg-white border border-gray-200 rounded-2xl p-4 mb-3"
-      activeOpacity={0.7}
-      onPress={() => {
-        setEditingSubscription(item);
-        setModalVisible(true);
-      }}
-    >
+    <View className="flex-row items-center gap-4 bg-white border border-gray-200 rounded-2xl p-4">
       <View
         className="w-14 h-14 rounded-xl items-center justify-center"
         style={{ backgroundColor: getColorForName(item.name) }}
@@ -154,7 +160,7 @@ export default function HomeScreen() {
           </Text>
         )}
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -183,7 +189,7 @@ export default function HomeScreen() {
           </Text>
           <View className="flex-row items-baseline gap-1">
             <Text className="text-4xl font-extrabold text-white tracking-tight">
-              ${totalMonthlyCost.toFixed(2)}
+              {totalMonthlyCost.toFixed(2)} {defaultCurrency}
             </Text>
             <Text className="text-base font-medium text-white/70">/ mo</Text>
           </View>
@@ -380,7 +386,16 @@ export default function HomeScreen() {
           </View>
         ) : (
           sortedSubscriptions.map((item) => (
-            <View key={item.id}>{renderSubscriptionItem({ item })}</View>
+            <SwipeableItem
+              key={item.id}
+              onEdit={() => {
+                setEditingSubscription(item);
+                setModalVisible(true);
+              }}
+              onDelete={() => removeSubscription(item.id)}
+            >
+              {renderSubscriptionItem({ item })}
+            </SwipeableItem>
           ))
         )}
       </ScrollView>
