@@ -12,7 +12,7 @@ interface SettingsStore {
   exchangeRates: ExchangeRates;
   isLoadingRates: boolean;
   setDefaultCurrency: (currency: string) => void;
-  updateExchangeRates: () => Promise<void>;
+  updateExchangeRates: () => Promise<boolean>;
   setExchangeRates: (rates: ExchangeRates) => void;
 }
 
@@ -32,8 +32,7 @@ export const useSettingsStore = create<SettingsStore>()(
         const currentRates = get().exchangeRates;
         
         if (currentRates.lastUpdated === today) {
-          console.log('currency rates updated');
-          return;
+          return true;
         }
 
         set({ isLoadingRates: true });
@@ -41,10 +40,11 @@ export const useSettingsStore = create<SettingsStore>()(
         try {
           const rates = await fetchExchangeRates();
           set({ exchangeRates: rates, isLoadingRates: false });
-          console.log('currency rates updated:', rates);
+          return true;
         } catch (error) {
           console.error('Failed to fetch currency rates, using default rates');
           set({ isLoadingRates: false });
+          return false;
         }
       },
     }),

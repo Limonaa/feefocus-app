@@ -55,6 +55,8 @@ export default function SwipeableItem({
   };
 
   const panGesture = Gesture.Pan()
+    .activeOffsetX([-50, 50])
+    .failOffsetY([-3, 3])
     .onStart(() => {
       context.value = { x: translateX.value };
     })
