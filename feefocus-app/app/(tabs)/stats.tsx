@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
 import { convertCurrency } from "@/utils/currency";
-import { Subscription } from "@/types/subscription";
 import { Colors } from "@/constants/colors";
 import { PieChart } from "react-native-gifted-charts";
 import { Calendar } from "react-native-calendars";

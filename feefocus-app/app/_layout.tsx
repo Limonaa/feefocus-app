@@ -8,8 +8,10 @@ import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import "../global.css";
+import { useEffect } from "react";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useSettingsStore } from "@/stores/useSettingsStore";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -17,6 +19,11 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const updateExchangeRates = useSettingsStore((state) => state.updateExchangeRates);
+
+  useEffect(() => {
+    updateExchangeRates();
+  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

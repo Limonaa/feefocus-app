@@ -1,3 +1,5 @@
+import { useSettingsStore } from "@/stores/useSettingsStore";
+
 export const EXCHANGE_RATES: { [key: string]: number } = {
   PLN: 1,
   USD: 3.6,
@@ -14,8 +16,10 @@ export const convertCurrency = (
     return amount;
   }
 
-  const fromRate = EXCHANGE_RATES[fromCurrency] || 1;
-  const toRate = EXCHANGE_RATES[toCurrency] || 1;
+  const exchangeRates = useSettingsStore.getState().exchangeRates;
+
+  const fromRate = (exchangeRates[fromCurrency as keyof typeof exchangeRates] ?? 1) as number;
+  const toRate = (exchangeRates[toCurrency as keyof typeof exchangeRates] ?? 1) as number;
 
   const amountInPLN = amount * fromRate;
   const convertedAmount = amountInPLN / toRate;
