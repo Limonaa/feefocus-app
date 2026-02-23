@@ -21,8 +21,13 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
+import { useSettingsStore } from "@/stores/useSettingsStore";
 import { Subscription } from "@/types/subscription";
 import { Colors } from "@/constants/colors";
+import {
+  schedulePaymentNotification,
+  cancelSubscriptionNotification,
+} from "@/services/notificationService";
 
 const subscriptionSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
@@ -75,6 +80,9 @@ export default function AddSubscriptionModal({
   );
   const removeSubscription = useSubscriptionStore(
     (state) => state.removeSubscription,
+  );
+  const upcomingPaymentsNotif = useSettingsStore(
+    (state) => state.upcomingPaymentsNotif,
   );
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -153,10 +161,25 @@ export default function AddSubscriptionModal({
     watch("billingCycle");
   };
 
-  const onSubmit = (data: SubscriptionFormData) => {
+  const onSubmit = async (data: SubscriptionFormData) => {
     const normalizedPrice = data.price.replace(",", ".");
 
     if (editSubscription) {
+      if (editSubscription.notificationId) {
+        await cancelSubscriptionNotification(editSubscription.notificationId);
+      }
+
+      let notificationId: string | null = null;
+      if (upcomingPaymentsNotif) {
+        notificationId = await schedulePaymentNotification(
+          editSubscription.id,
+          data.name,
+          Number(normalizedPrice),
+          data.currency,
+          data.nextPaymentDate,
+        );
+      }
+
       updateSubscription(editSubscription.id, {
         name: data.name,
         price: Number(normalizedPrice),
@@ -164,6 +187,7 @@ export default function AddSubscriptionModal({
         billingCycle: data.billingCycle,
         category: data.category || "Other",
         nextPaymentDate: data.nextPaymentDate,
+        notificationId: notificationId || undefined,
       });
     } else {
       const newSubscription: Subscription = {
@@ -175,6 +199,18 @@ export default function AddSubscriptionModal({
         category: data.category || "Other",
         nextPaymentDate: data.nextPaymentDate,
       };
+
+      if (upcomingPaymentsNotif) {
+        const notificationId = await schedulePaymentNotification(
+          newSubscription.id,
+          data.name,
+          Number(normalizedPrice),
+          data.currency,
+          data.nextPaymentDate,
+        );
+        newSubscription.notificationId = notificationId || undefined;
+      }
+
       addSubscription(newSubscription);
     }
 
@@ -189,8 +225,11 @@ export default function AddSubscriptionModal({
     onClose();
   };
 
-  const handleDeleteSubscription = () => {
+  const handleDeleteSubscription = async () => {
     if (editSubscription) {
+      if (editSubscription.notificationId) {
+        await cancelSubscriptionNotification(editSubscription.notificationId);
+      }
       removeSubscription(editSubscription.id);
       handleClose();
     }

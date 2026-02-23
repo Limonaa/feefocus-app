@@ -3,8 +3,8 @@ import { useSettingsStore } from "@/stores/useSettingsStore";
 export const EXCHANGE_RATES: { [key: string]: number } = {
   PLN: 1,
   USD: 3.6,
-  GBP: 4.86,
-  EUR: 4.22,
+  GBP: 4.8,
+  EUR: 4.2,
 };
 
 export const convertCurrency = (
@@ -18,8 +18,10 @@ export const convertCurrency = (
 
   const exchangeRates = useSettingsStore.getState().exchangeRates;
 
-  const fromRate = (exchangeRates[fromCurrency as keyof typeof exchangeRates] ?? 1) as number;
-  const toRate = (exchangeRates[toCurrency as keyof typeof exchangeRates] ?? 1) as number;
+  const fromRate = (exchangeRates[fromCurrency as keyof typeof exchangeRates] ??
+    1) as number;
+  const toRate = (exchangeRates[toCurrency as keyof typeof exchangeRates] ??
+    1) as number;
 
   const amountInPLN = amount * fromRate;
   const convertedAmount = amountInPLN / toRate;

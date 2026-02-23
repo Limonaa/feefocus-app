@@ -9,12 +9,16 @@ import {
 import { useState, useEffect } from "react";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
+import { convertCurrency } from "@/utils/currency";
 import { Colors } from "@/constants/colors";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import CurrencyModal from "@/components/CurrencyModal";
 import {
   registerForPushNotifications,
   sendTestNotification,
+  schedulePaymentNotification,
+  cancelSubscriptionNotification,
+  scheduleMonthlySummaryNotification,
 } from "@/services/notificationService";
 
 export default function SettingsScreen() {
@@ -22,16 +26,130 @@ export default function SettingsScreen() {
   const setDefaultCurrency = useSettingsStore(
     (state) => state.setDefaultCurrency,
   );
+  const upcomingPaymentsNotif = useSettingsStore(
+    (state) => state.upcomingPaymentsNotif,
+  );
+  const setUpcomingPaymentsNotif = useSettingsStore(
+    (state) => state.setUpcomingPaymentsNotif,
+  );
+  const monthlySummaryNotif = useSettingsStore(
+    (state) => state.monthlySummaryNotif,
+  );
+  const setMonthlySummaryNotif = useSettingsStore(
+    (state) => state.setMonthlySummaryNotif,
+  );
+  const monthlyNotificationId = useSettingsStore(
+    (state) => state.monthlyNotificationId,
+  );
+  const setMonthlyNotificationId = useSettingsStore(
+    (state) => state.setMonthlyNotificationId,
+  );
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
-  const [upcomingPaymentsNotif, setUpcomingPaymentsNotif] = useState(true);
-  const [monthlySummaryNotif, setMonthlySummaryNotif] = useState(true);
+  const subscriptions = useSubscriptionStore((state) => state.subscriptions);
+  const updateSubscription = useSubscriptionStore(
+    (state) => state.updateSubscription,
+  );
   const deleteSubscriptions = useSubscriptionStore(
     (state) => state.deleteSubscriptions,
   );
 
+  const calculateTotalMonthlyCost = () => {
+    return subscriptions.reduce((total, sub) => {
+      let monthlyPrice = sub.price;
+
+      switch (sub.billingCycle) {
+        case "weekly":
+          monthlyPrice = sub.price * 4;
+          break;
+        case "monthly":
+          monthlyPrice = sub.price;
+          break;
+        case "yearly":
+          monthlyPrice = sub.price / 12;
+          break;
+      }
+
+      const convertedPrice = convertCurrency(
+        monthlyPrice,
+        sub.currency,
+        defaultCurrency,
+      );
+
+      return total + convertedPrice;
+    }, 0);
+  };
+
   useEffect(() => {
     registerForPushNotifications();
+
+    if (monthlySummaryNotif) {
+      const rescheduleMonthlyNotif = async () => {
+        if (monthlyNotificationId) {
+          await cancelSubscriptionNotification(monthlyNotificationId);
+        }
+
+        const totalCost = calculateTotalMonthlyCost();
+        const notificationId = await scheduleMonthlySummaryNotification(
+          totalCost,
+          defaultCurrency,
+        );
+        if (notificationId) {
+          setMonthlyNotificationId(notificationId);
+        }
+      };
+      rescheduleMonthlyNotif();
+    }
   }, []);
+
+  const handleToggleUpcomingPayments = async (enabled: boolean) => {
+    setUpcomingPaymentsNotif(enabled);
+
+    if (enabled) {
+      for (const sub of subscriptions) {
+        const notificationId = await schedulePaymentNotification(
+          sub.id,
+          sub.name,
+          sub.price,
+          sub.currency,
+          sub.nextPaymentDate,
+        );
+        if (notificationId) {
+          updateSubscription(sub.id, { notificationId });
+        }
+      }
+    } else {
+      for (const sub of subscriptions) {
+        if (sub.notificationId) {
+          await cancelSubscriptionNotification(sub.notificationId);
+          updateSubscription(sub.id, { notificationId: undefined });
+        }
+      }
+    }
+  };
+
+  const handleToggleMonthlySummary = async (enabled: boolean) => {
+    setMonthlySummaryNotif(enabled);
+
+    if (enabled) {
+      if (monthlyNotificationId) {
+        await cancelSubscriptionNotification(monthlyNotificationId);
+      }
+
+      const totalCost = calculateTotalMonthlyCost();
+      const notificationId = await scheduleMonthlySummaryNotification(
+        totalCost,
+        defaultCurrency,
+      );
+      if (notificationId) {
+        setMonthlyNotificationId(notificationId);
+      }
+    } else {
+      if (monthlyNotificationId) {
+        await cancelSubscriptionNotification(monthlyNotificationId);
+        setMonthlyNotificationId(undefined);
+      }
+    }
+  };
 
   const handleClearData = () => {
     Alert.alert(
@@ -158,7 +276,7 @@ export default function SettingsScreen() {
                 </View>
                 <Switch
                   value={upcomingPaymentsNotif}
-                  onValueChange={setUpcomingPaymentsNotif}
+                  onValueChange={handleToggleUpcomingPayments}
                   trackColor={{
                     false: Colors.border.light,
                     true: Colors.primary,
@@ -184,7 +302,7 @@ export default function SettingsScreen() {
                 </View>
                 <Switch
                   value={monthlySummaryNotif}
-                  onValueChange={setMonthlySummaryNotif}
+                  onValueChange={handleToggleMonthlySummary}
                   trackColor={{
                     false: Colors.border.light,
                     true: Colors.primary,

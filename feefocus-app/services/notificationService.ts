@@ -50,27 +50,43 @@ export async function sendTestNotification(): Promise<void> {
 }
 
 export async function schedulePaymentNotification(
+  subscriptionId: string,
   subscriptionName: string,
   amount: number,
   currency: string,
-  date: Date,
-): Promise<void> {
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title: "Upcomming payment!",
-      body: `${subscriptionName}: ${amount} ${currency}`,
-      data: {
-        type: "payment",
-        subscriptionName,
-        amount,
-        currency,
+  paymentDate: Date,
+): Promise<string | null> {
+  const notificationDate = new Date(paymentDate);
+  notificationDate.setDate(notificationDate.getDate() - 1);
+  notificationDate.setHours(10, 0, 0, 0); // 10:00 AM
+
+  if (notificationDate.getTime() <= Date.now()) {
+    return null;
+  }
+
+  try {
+    const identifier = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "FeeFocus",
+        body: `Tomorrow: Payment for ${subscriptionName} (${amount} ${currency})`,
+        data: {
+          type: "payment",
+          subscriptionId,
+          subscriptionName,
+          amount,
+          currency,
+        },
       },
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DATE,
-      date: date,
-    },
-  });
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: notificationDate,
+      },
+    });
+    return identifier;
+  } catch (error) {
+    console.error("Failed to schedule notification:", error);
+    return null;
+  }
 }
 
 export async function cancelAllNotifications(): Promise<void> {
@@ -79,4 +95,53 @@ export async function cancelAllNotifications(): Promise<void> {
 
 export async function cancelNotification(identifier: string): Promise<void> {
   await Notifications.cancelScheduledNotificationAsync(identifier);
+}
+
+export async function cancelSubscriptionNotification(
+  notificationId?: string,
+): Promise<void> {
+  if (notificationId) {
+    try {
+      await Notifications.cancelScheduledNotificationAsync(notificationId);
+    } catch (error) {
+      console.error("Failed to cancel notification:", error);
+    }
+  }
+}
+
+export async function scheduleMonthlySummaryNotification(
+  totalAmount: number,
+  currency: string,
+): Promise<string | null> {
+  try {
+    const now = new Date();
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    lastDay.setHours(16, 0, 0, 0);
+
+    if (lastDay.getTime() <= Date.now()) {
+      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0);
+      nextMonth.setHours(16, 0, 0, 0);
+      lastDay.setTime(nextMonth.getTime());
+    }
+
+    const identifier = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Monthly Expenses Summary",
+        body: `This month you spent ${totalAmount.toFixed(2)} ${currency} on subscriptions`,
+        data: {
+          type: "monthly_summary",
+          amount: totalAmount,
+          currency,
+        },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: lastDay,
+      },
+    });
+    return identifier;
+  } catch (error) {
+    console.error("Failed to schedule monthly notification:", error);
+    return null;
+  }
 }

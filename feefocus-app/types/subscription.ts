@@ -3,7 +3,8 @@ export interface Subscription {
   name: string;
   price: number;
   currency: string;
-  billingCycle: 'monthly' | 'weekly' | 'yearly';
+  billingCycle: "monthly" | "weekly" | "yearly";
   category: string;
   nextPaymentDate: Date;
+  notificationId?: string;
 }
