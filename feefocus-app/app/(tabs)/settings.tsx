@@ -6,12 +6,16 @@ import {
   Switch,
   Alert,
 } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
 import { Colors } from "@/constants/colors";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import CurrencyModal from "@/components/CurrencyModal";
+import {
+  registerForPushNotifications,
+  sendTestNotification,
+} from "@/services/notificationService";
 
 export default function SettingsScreen() {
   const defaultCurrency = useSettingsStore((state) => state.defaultCurrency);
@@ -24,6 +28,10 @@ export default function SettingsScreen() {
   const deleteSubscriptions = useSubscriptionStore(
     (state) => state.deleteSubscriptions,
   );
+
+  useEffect(() => {
+    registerForPushNotifications();
+  }, []);
 
   const handleClearData = () => {
     Alert.alert(
@@ -184,6 +192,24 @@ export default function SettingsScreen() {
                   }}
                   thumbColor={Colors.text.white}
                 />
+              </View>
+
+              <View
+                className="px-4 py-4 border-t"
+                style={{ borderColor: Colors.border.light }}
+              >
+                <TouchableOpacity
+                  onPress={sendTestNotification}
+                  className="rounded-xl px-4 py-3 active:opacity-70"
+                  style={{ backgroundColor: Colors.primary + "20" }}
+                >
+                  <Text
+                    className="text-center font-semibold text-sm"
+                    style={{ color: Colors.primary }}
+                  >
+                    Send Test Notification
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
           </View>
