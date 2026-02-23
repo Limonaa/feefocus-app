@@ -371,25 +371,44 @@ export default function AddSubscriptionModal({
                   <Controller
                     control={control}
                     name="price"
-                    render={({ field: { onChange, value } }) => (
-                      <View
-                        className="flex-1 rounded-xl flex-row items-center px-4 border"
-                        style={{
-                          backgroundColor: Colors.background.card,
-                          borderColor: Colors.border.light,
-                        }}
-                      >
-                        <TextInput
-                          className="flex-1 text-lg font-bold pb-2 min-h-14"
-                          style={{ color: Colors.text.primary }}
-                          placeholder="0.00"
-                          placeholderTextColor={Colors.text.tertiary}
-                          value={value}
-                          onChangeText={onChange}
-                          keyboardType="decimal-pad"
-                        />
-                      </View>
-                    )}
+                    render={({ field: { onChange, value } }) => {
+                      const handlePriceChange = (text: string) => {
+                        const cleanText = text.replace(/[^0-9.,]/g, "");
+
+                        const normalized = cleanText.replace(",", ".");
+
+                        const parts = normalized.split(".");
+                        if (parts.length > 2) {
+                          return;
+                        }
+
+                        if (parts.length === 2 && parts[1].length > 2) {
+                          onChange(`${parts[0]}.${parts[1].slice(0, 2)}`);
+                        } else {
+                          onChange(cleanText);
+                        }
+                      };
+
+                      return (
+                        <View
+                          className="flex-1 rounded-xl flex-row items-center px-4 border"
+                          style={{
+                            backgroundColor: Colors.background.card,
+                            borderColor: Colors.border.light,
+                          }}
+                        >
+                          <TextInput
+                            className="flex-1 text-lg font-bold pb-2 min-h-14"
+                            style={{ color: Colors.text.primary }}
+                            placeholder="0.00"
+                            placeholderTextColor={Colors.text.tertiary}
+                            value={value}
+                            onChangeText={handlePriceChange}
+                            keyboardType="decimal-pad"
+                          />
+                        </View>
+                      );
+                    }}
                   />
                 </View>
                 {errors.price && (

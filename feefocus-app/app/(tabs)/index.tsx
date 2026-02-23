@@ -1,4 +1,10 @@
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+} from "react-native";
 import { useState, useEffect } from "react";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
@@ -19,6 +25,8 @@ export default function HomeScreen() {
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [sortType, setSortType] = useState<SortType>("none");
   const [isReversed, setIsReversed] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const subscriptions = useSubscriptionStore((state) => state.subscriptions);
   const removeSubscription = useSubscriptionStore(
     (state) => state.removeSubscription,
@@ -71,28 +79,37 @@ export default function HomeScreen() {
   };
 
   const getSortedSubscriptions = () => {
-    const sorted = [...subscriptions];
+    let filtered = [...subscriptions];
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (sub) =>
+          sub.name.toLowerCase().includes(query) ||
+          sub.category?.toLowerCase().includes(query),
+      );
+    }
 
     switch (sortType) {
       case "alphabetical":
-        return sorted.sort((a, b) =>
+        return filtered.sort((a, b) =>
           isReversed
             ? b.name.localeCompare(a.name)
             : a.name.localeCompare(b.name),
         );
       case "date":
-        return sorted.sort((a, b) => {
+        return filtered.sort((a, b) => {
           const comparison =
             new Date(a.nextPaymentDate).getTime() -
             new Date(b.nextPaymentDate).getTime();
           return isReversed ? -comparison : comparison;
         });
       case "price":
-        return sorted.sort((a, b) =>
+        return filtered.sort((a, b) =>
           isReversed ? a.price - b.price : b.price - a.price,
         );
       default:
-        return isReversed ? sorted.reverse() : sorted;
+        return isReversed ? filtered.reverse() : filtered;
     }
   };
 
@@ -166,12 +183,50 @@ export default function HomeScreen() {
   return (
     <View className="flex-1 bg-[#f6f6f8]">
       <View className="flex-row justify-between px-4 pt-14 pb-4 bg-[#f6f6f8]">
-        <Text className="text-lg font-extrabold text-gray-900 tracking-tight">
-          FeeFocus
-        </Text>
-        <TouchableOpacity className="w-10 h-10 rounded-full bg-gray-200/50 items-center justify-center">
-          <Ionicons name="search" size={20} color={Colors.text.primary} />
-        </TouchableOpacity>
+        {showSearch ? (
+          <View className="flex-1 flex-row items-center gap-2">
+            <View
+              className="flex-1 h-10 rounded-full px-4 flex-row items-center"
+              style={{
+                backgroundColor: "white",
+                borderWidth: 1,
+                borderColor: Colors.border.light,
+              }}
+            >
+              <Ionicons name="search" size={18} color={Colors.text.secondary} />
+              <TextInput
+                className="flex-1 text-base font-medium pb-2 min-h-14 ml-2"
+                style={{ color: Colors.text.primary }}
+                placeholder="Search subscriptions..."
+                placeholderTextColor={Colors.text.tertiary}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                autoFocus
+              />
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                setShowSearch(false);
+                setSearchQuery("");
+              }}
+              className="w-10 h-10 rounded-full bg-gray-200/50 items-center justify-center"
+            >
+              <Ionicons name="close" size={20} color={Colors.text.primary} />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            <Text className="text-lg font-extrabold text-gray-900 tracking-tight">
+              FeeFocus
+            </Text>
+            <TouchableOpacity
+              onPress={() => setShowSearch(true)}
+              className="w-10 h-10 rounded-full bg-gray-200/50 items-center justify-center"
+            >
+              <Ionicons name="search" size={20} color={Colors.text.primary} />
+            </TouchableOpacity>
+          </>
+        )}
       </View>
 
       <View
@@ -382,6 +437,17 @@ export default function HomeScreen() {
           <View className="items-center justify-center p-8">
             <Text className="text-gray-500 text-center text-base">
               No subscriptions yet. Tap + to add one!
+            </Text>
+          </View>
+        ) : sortedSubscriptions.length === 0 ? (
+          <View className="items-center justify-center p-8">
+            <Ionicons
+              name="search-outline"
+              size={48}
+              color={Colors.text.tertiary}
+            />
+            <Text className="text-gray-500 text-center text-base mt-4">
+              No subscriptions found for "{searchQuery}"
             </Text>
           </View>
         ) : (

@@ -253,7 +253,12 @@ export default function StatsScreen() {
                       className="w-4 h-4 rounded-full"
                       style={{ backgroundColor: item.color }}
                     />
-                    <Text style={{ color: Colors.text.secondary }}>
+                    <Text
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                      className="text-sm flex-1"
+                      style={{ color: Colors.text.secondary }}
+                    >
                       {item.text}
                     </Text>
                   </View>

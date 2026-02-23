@@ -60,13 +60,12 @@ export default function SettingsScreen() {
       style={{ backgroundColor: Colors.background.main }}
     >
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="px-4 pt-12 pb-6">
-          <Text
-            className="text-3xl font-bold mb-8 text-center"
-            style={{ color: Colors.text.primary }}
-          >
-            Settings
-          </Text>
+        <View className="px-4">
+          <View className="flex-row items-center pt-14 justify-between pb-4 bg-[#f6f6f8]">
+            <Text className="text-lg font-extrabold text-gray-900 tracking-tight">
+              FeeFocus
+            </Text>
+          </View>
 
           <View className="mb-8">
             <Text
@@ -220,7 +219,7 @@ export default function SettingsScreen() {
           >
             storage
           </Text>
-          <View className="mb-8">
+          <View className="mb-20">
             <TouchableOpacity
               onPress={handleClearData}
               className="rounded-2xl px-6 py-4 border"
