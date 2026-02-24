@@ -2,7 +2,7 @@ import { View, Text, ScrollView, TouchableOpacity, Modal } from "react-native";
 import { Colors } from "@/constants/colors";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
-const CURRENCIES = ["PLN", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF"];
+const CURRENCIES = ["PLN", "USD", "EUR", "GBP"];
 
 interface CurrencyModalProps {
   visible: boolean;
@@ -81,7 +81,7 @@ export default function CurrencyModal({
               className="py-3 rounded-lg items-center"
               style={{ backgroundColor: Colors.primary }}
             >
-              <Text className="font-bold text-white">Close</Text>
+              <Text className="font-bold text-white">Select</Text>
             </TouchableOpacity>
           </View>
         </View>

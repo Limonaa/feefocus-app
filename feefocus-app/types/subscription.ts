@@ -1,3 +1,10 @@
+export interface SubscriptionHistory {
+  periodStart: Date;
+  periodEnd: Date;
+  price: number;
+  currency: string;
+}
+
 export interface Subscription {
   id: string;
   name: string;
@@ -7,4 +14,5 @@ export interface Subscription {
   category: string;
   nextPaymentDate: Date;
   notificationId?: string;
+  history?: SubscriptionHistory[];
 }

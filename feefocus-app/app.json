@@ -2,7 +2,7 @@
   "expo": {
     "name": "FeeFocus",
     "slug": "feefocus-app",
-    "version": "1.0.0",
+    "version": "0.7.3",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "feefocusapp",
@@ -14,8 +14,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/android-icon-foreground.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false

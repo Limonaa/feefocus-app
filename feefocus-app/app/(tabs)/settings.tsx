@@ -7,6 +7,7 @@ import {
   Alert,
 } from "react-native";
 import { useState, useEffect } from "react";
+import Constants from "expo-constants";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
 import { convertCurrency } from "@/utils/currency";
@@ -51,6 +52,9 @@ export default function SettingsScreen() {
   );
   const deleteSubscriptions = useSubscriptionStore(
     (state) => state.deleteSubscriptions,
+  );
+  const addSampleDataWithHistory = useSubscriptionStore(
+    (state) => state.addSampleDataWithHistory,
   );
 
   const calculateTotalMonthlyCost = () => {
@@ -167,6 +171,27 @@ export default function SettingsScreen() {
             deleteSubscriptions();
           },
           style: "destructive",
+        },
+      ],
+    );
+  };
+
+  const handleLoadSampleData = () => {
+    Alert.alert(
+      "Load Sample Data",
+      "This will replace all current subscriptions with sample data. Continue?",
+      [
+        {
+          text: "Cancel",
+          onPress: () => {},
+          style: "cancel",
+        },
+        {
+          text: "Load",
+          onPress: () => {
+            addSampleDataWithHistory();
+            Alert.alert("Success", "Sample data with history has been loaded!");
+          },
         },
       ],
     );
@@ -331,6 +356,42 @@ export default function SettingsScreen() {
             </View>
           </View>
 
+          <View className="mb-8">
+            <Text
+              className="text-xs font-semibold mb-3 px-2 uppercase tracking-wider"
+              style={{ color: Colors.text.secondary }}
+            >
+              Dev Tools
+            </Text>
+            <View
+              className="rounded-2xl overflow-hidden border"
+              style={{
+                backgroundColor: Colors.background.card,
+                borderColor: Colors.border.light,
+              }}
+            >
+              <TouchableOpacity
+                onPress={handleLoadSampleData}
+                className="flex-row items-center px-4 py-4 gap-4 active:opacity-70"
+              >
+                <View
+                  className="flex items-center justify-center w-10 h-10 rounded-lg"
+                  style={{ backgroundColor: "#8b5cf6" + "20" }}
+                >
+                  <MaterialIcons name="add-chart" size={22} color="#8b5cf6" />
+                </View>
+                <View className="flex-1">
+                  <Text
+                    className="text-base font-medium"
+                    style={{ color: Colors.text.primary }}
+                  >
+                    Load Sample Data
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+
           <Text
             className="text-xs font-semibold mb-3 px-2 uppercase tracking-wider"
             style={{ color: Colors.text.secondary }}
@@ -368,7 +429,7 @@ export default function SettingsScreen() {
           FeeFocus
         </Text>
         <Text className="text-xs" style={{ color: Colors.text.secondary }}>
-          v0.3.1
+          v{Constants.expoConfig?.version}
         </Text>
       </View>
 
