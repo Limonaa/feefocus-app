@@ -289,7 +289,7 @@ export default function StatsScreen() {
         </View>
 
         <View
-          className="mt-4 mb-20 rounded-2xl overflow-hidden border"
+          className="mt-4 mb-24 rounded-2xl overflow-hidden border"
           style={{
             backgroundColor: Colors.background.card,
             borderColor: Colors.border.light,

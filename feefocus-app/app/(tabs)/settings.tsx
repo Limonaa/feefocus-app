@@ -56,6 +56,7 @@ export default function SettingsScreen() {
   const addSampleDataWithHistory = useSubscriptionStore(
     (state) => state.addSampleDataWithHistory,
   );
+  const resetSettings = useSettingsStore((state) => state.resetSettings);
 
   const calculateTotalMonthlyCost = () => {
     return subscriptions.reduce((total, sub) => {
@@ -155,10 +156,10 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleClearData = () => {
+  const handleClearData = async () => {
     Alert.alert(
       "Clear All Data",
-      "Are you sure you want to delete all subscriptions? This action cannot be undone.",
+      "Are you sure you want to delete all subscriptions and reset settings? This action cannot be undone.",
       [
         {
           text: "Cancel",
@@ -167,8 +168,21 @@ export default function SettingsScreen() {
         },
         {
           text: "Delete",
-          onPress: () => {
+          onPress: async () => {
+            for (const sub of subscriptions) {
+              if (sub.notificationId) {
+                await cancelSubscriptionNotification(sub.notificationId);
+              }
+            }
+
+            if (monthlyNotificationId) {
+              await cancelSubscriptionNotification(monthlyNotificationId);
+            }
+
             deleteSubscriptions();
+            resetSettings();
+
+            Alert.alert("Success", "All data has been cleared!");
           },
           style: "destructive",
         },

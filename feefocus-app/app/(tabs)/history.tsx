@@ -1,13 +1,8 @@
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  TextInput,
-} from "react-native";
+import { View, Text, FlatList } from "react-native";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { SubscriptionHistory } from "@/types/subscription";
 import { useMemo, useState } from "react";
+import SearchBar from "@/components/SearchBar";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
 
@@ -69,52 +64,13 @@ export default function HistoryScreen() {
 
   return (
     <View className="flex-1 bg-[#f6f6f8]">
-      <View className="flex-row justify-between px-4 pt-14 pb-4 bg-[#f6f6f8]">
-        {showSearch ? (
-          <View className="flex-1 flex-row items-center gap-2">
-            <View
-              className="flex-1 h-10 rounded-full px-4 flex-row items-center"
-              style={{
-                backgroundColor: "white",
-                borderWidth: 1,
-                borderColor: Colors.border.light,
-              }}
-            >
-              <Ionicons name="search" size={18} color={Colors.text.secondary} />
-              <TextInput
-                className="flex-1 text-base font-medium pb-2 min-h-14 ml-2"
-                style={{ color: Colors.text.primary }}
-                placeholder="Search history..."
-                placeholderTextColor={Colors.text.tertiary}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                autoFocus
-              />
-            </View>
-            <TouchableOpacity
-              onPress={() => {
-                setShowSearch(false);
-                setSearchQuery("");
-              }}
-              className="w-10 h-10 rounded-full bg-gray-200/50 items-center justify-center"
-            >
-              <Ionicons name="close" size={20} color={Colors.text.primary} />
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <>
-            <Text className="text-lg font-extrabold text-gray-900 tracking-tight">
-              FeeFocus
-            </Text>
-            <TouchableOpacity
-              onPress={() => setShowSearch(true)}
-              className="w-10 h-10 rounded-full bg-gray-200/50 items-center justify-center"
-            >
-              <Ionicons name="search" size={20} color={Colors.text.primary} />
-            </TouchableOpacity>
-          </>
-        )}
-      </View>
+      <SearchBar
+        showSearch={showSearch}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onToggleSearch={setShowSearch}
+        placeholder="Search history..."
+      />
 
       {filteredHistory.length === 0 && searchQuery.trim() ? (
         <View className="flex-1 items-center justify-center px-6">

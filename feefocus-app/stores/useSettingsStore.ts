@@ -20,6 +20,7 @@ interface SettingsStore {
   setUpcomingPaymentsNotif: (enabled: boolean) => void;
   setMonthlySummaryNotif: (enabled: boolean) => void;
   setMonthlyNotificationId: (id?: string) => void;
+  resetSettings: () => void;
 }
 
 export const useSettingsStore = create<SettingsStore>()(
@@ -43,6 +44,15 @@ export const useSettingsStore = create<SettingsStore>()(
         set({ monthlySummaryNotif: enabled }),
 
       setMonthlyNotificationId: (id) => set({ monthlyNotificationId: id }),
+
+      resetSettings: () =>
+        set({
+          defaultCurrency: "PLN",
+          exchangeRates: DEFAULT_EXCHANGE_RATES,
+          upcomingPaymentsNotif: true,
+          monthlySummaryNotif: true,
+          monthlyNotificationId: undefined,
+        }),
 
       updateExchangeRates: async () => {
         const today = new Date().toISOString().split("T")[0];

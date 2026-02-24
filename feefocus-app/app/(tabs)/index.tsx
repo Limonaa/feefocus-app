@@ -1,10 +1,4 @@
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-} from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { useState, useEffect } from "react";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
@@ -12,6 +6,8 @@ import { convertCurrency } from "@/utils/currency";
 import { Subscription } from "@/types/subscription";
 import AddSubscriptionModal from "@/components/AddSubscriptionModal";
 import SwipeableItem from "@/components/SwipeableItem";
+import SubscriptionItem from "@/components/SubscriptionItem";
+import SearchBar from "@/components/SearchBar";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
 
@@ -39,44 +35,6 @@ export default function HomeScreen() {
   useEffect(() => {
     updateExpiredSubscriptions();
   }, [updateExpiredSubscriptions]);
-
-  const iconColors = [
-    "#64748b",
-    "#3b82f6",
-    "#6366f1",
-    "#8b5cf6",
-    "#0ea5e9",
-    "#475569",
-  ];
-
-  const getColorForName = (name: string) => {
-    const index = name.length % iconColors.length;
-    return iconColors[index];
-  };
-
-  const getDaysUntilPayment = (nextPaymentDate: Date | string): number => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const paymentDate = new Date(nextPaymentDate);
-    paymentDate.setHours(0, 0, 0, 0);
-
-    const diffTime = paymentDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    return diffDays;
-  };
-
-  const getPaymentDateColor = (nextPaymentDate: Date | string): string => {
-    const daysUntil = getDaysUntilPayment(nextPaymentDate);
-
-    if (daysUntil <= 1) {
-      return Colors.error;
-    } else if (daysUntil <= 3) {
-      return Colors.warning;
-    }
-    return Colors.text.tertiary;
-  };
 
   const getSortedSubscriptions = () => {
     let filtered = [...subscriptions];
@@ -139,95 +97,15 @@ export default function HomeScreen() {
     return total + convertedPrice;
   }, 0);
 
-  const renderSubscriptionItem = ({ item }: { item: Subscription }) => (
-    <View className="flex-row items-center gap-4 bg-white border border-gray-200 rounded-2xl p-4">
-      <View
-        className="w-14 h-14 rounded-xl items-center justify-center"
-        style={{ backgroundColor: getColorForName(item.name) }}
-      >
-        <Text className="text-white text-2xl font-bold">
-          {item.name.charAt(0).toUpperCase()}
-        </Text>
-      </View>
-      <View className="flex-1">
-        <Text className="text-base font-bold text-gray-900 mb-1">
-          {item.name}
-        </Text>
-        <View className="flex-row items-center gap-1.5 mt-1">
-          <Ionicons
-            name="calendar-outline"
-            size={12}
-            color={getPaymentDateColor(item.nextPaymentDate)}
-          />
-          <Text
-            className="text-xs font-medium uppercase tracking-wide"
-            style={{ color: getPaymentDateColor(item.nextPaymentDate) }}
-          >
-            {new Date(item.nextPaymentDate).toISOString().split("T")[0]}
-          </Text>
-        </View>
-      </View>
-      <View className="items-end">
-        <Text className="text-lg font-extrabold text-gray-900">
-          {item.price + " " + item.currency}
-        </Text>
-        {item.category && (
-          <Text className="text-[10px] font-bold text-gray-400 mt-0.5">
-            {item.category.toUpperCase()}
-          </Text>
-        )}
-      </View>
-    </View>
-  );
-
   return (
     <View className="flex-1 bg-[#f6f6f8]">
-      <View className="flex-row justify-between px-4 pt-14 pb-4 bg-[#f6f6f8]">
-        {showSearch ? (
-          <View className="flex-1 flex-row items-center gap-2">
-            <View
-              className="flex-1 h-10 rounded-full px-4 flex-row items-center"
-              style={{
-                backgroundColor: "white",
-                borderWidth: 1,
-                borderColor: Colors.border.light,
-              }}
-            >
-              <Ionicons name="search" size={18} color={Colors.text.secondary} />
-              <TextInput
-                className="flex-1 text-base font-medium pb-2 min-h-14 ml-2"
-                style={{ color: Colors.text.primary }}
-                placeholder="Search subscriptions..."
-                placeholderTextColor={Colors.text.tertiary}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                autoFocus
-              />
-            </View>
-            <TouchableOpacity
-              onPress={() => {
-                setShowSearch(false);
-                setSearchQuery("");
-              }}
-              className="w-10 h-10 rounded-full bg-gray-200/50 items-center justify-center"
-            >
-              <Ionicons name="close" size={20} color={Colors.text.primary} />
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <>
-            <Text className="text-lg font-extrabold text-gray-900 tracking-tight">
-              FeeFocus
-            </Text>
-            <TouchableOpacity
-              onPress={() => setShowSearch(true)}
-              className="w-10 h-10 rounded-full bg-gray-200/50 items-center justify-center"
-            >
-              <Ionicons name="search" size={20} color={Colors.text.primary} />
-            </TouchableOpacity>
-          </>
-        )}
-      </View>
+      <SearchBar
+        showSearch={showSearch}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onToggleSearch={setShowSearch}
+        placeholder="Search subscriptions..."
+      />
 
       <View
         className="mx-4 mb-2 rounded-2xl p-6 relative overflow-hidden shadow-xl"
@@ -293,20 +171,14 @@ export default function HomeScreen() {
 
           {showSortMenu && (
             <View
-              className="rounded-xl border overflow-hidden"
+              className="rounded-xl border overflow-hidden absolute top-12 right-0 w-48 bg-white z-50"
               style={{
-                position: "absolute",
-                top: 45,
-                right: 0,
-                width: 180,
-                backgroundColor: "white",
                 borderColor: Colors.border.light,
                 shadowColor: "#000",
                 shadowOffset: { width: 0, height: 4 },
                 shadowOpacity: 0.15,
                 shadowRadius: 8,
                 elevation: 8,
-                zIndex: 1000,
               }}
             >
               <TouchableOpacity
@@ -460,7 +332,7 @@ export default function HomeScreen() {
               }}
               onDelete={() => removeSubscription(item.id)}
             >
-              {renderSubscriptionItem({ item })}
+              <SubscriptionItem item={item} />
             </SwipeableItem>
           ))
         )}
