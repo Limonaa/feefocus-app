@@ -14,7 +14,6 @@ interface SubscriptionStore {
   updateExpiredSubscriptions: () => Promise<void>;
   deleteSubscriptions: () => void;
   getSubscriptionHistory: (id: string) => any[];
-  addSampleDataWithHistory: () => void;
 }
 
 export const useSubscriptionStore = create<SubscriptionStore>()(
@@ -131,118 +130,6 @@ export const useSubscriptionStore = create<SubscriptionStore>()(
       getSubscriptionHistory: (id) => {
         const subscription = get().subscriptions.find((sub) => sub.id === id);
         return subscription?.history || [];
-      },
-
-      addSampleDataWithHistory: () => {
-        const now = new Date();
-        const sampleSubscriptions: Subscription[] = [
-          {
-            id: "sample-1",
-            name: "Netflix",
-            price: 49.99,
-            currency: "PLN",
-            billingCycle: "monthly",
-            category: "Rozrywka",
-            nextPaymentDate: new Date(2026, 2, 15), // March 15, 2026
-            history: [
-              {
-                periodStart: new Date(2025, 10, 15), // Nov 15, 2025
-                periodEnd: new Date(2025, 11, 15), // Dec 15, 2025
-                price: 49.99,
-                currency: "PLN",
-              },
-              {
-                periodStart: new Date(2025, 11, 15), // Dec 15, 2025
-                periodEnd: new Date(2026, 0, 15), // Jan 15, 2026
-                price: 49.99,
-                currency: "PLN",
-              },
-              {
-                periodStart: new Date(2026, 0, 15), // Jan 15, 2026
-                periodEnd: new Date(2026, 1, 15), // Feb 15, 2026
-                price: 49.99,
-                currency: "PLN",
-              },
-            ],
-          },
-          {
-            id: "sample-2",
-            name: "Spotify Premium",
-            price: 21.99,
-            currency: "PLN",
-            billingCycle: "monthly",
-            category: "Muzyka",
-            nextPaymentDate: new Date(2026, 2, 20), // March 20, 2026
-            history: [
-              {
-                periodStart: new Date(2025, 11, 20), // Dec 20, 2025
-                periodEnd: new Date(2026, 0, 20), // Jan 20, 2026
-                price: 21.99,
-                currency: "PLN",
-              },
-              {
-                periodStart: new Date(2026, 0, 20), // Jan 20, 2026
-                periodEnd: new Date(2026, 1, 20), // Feb 20, 2026
-                price: 21.99,
-                currency: "PLN",
-              },
-            ],
-          },
-          {
-            id: "sample-3",
-            name: "Adobe Creative Cloud",
-            price: 299.99,
-            currency: "PLN",
-            billingCycle: "yearly",
-            category: "Narzędzia",
-            nextPaymentDate: new Date(2027, 1, 1), // Feb 1, 2027
-            history: [
-              {
-                periodStart: new Date(2025, 1, 1), // Feb 1, 2025
-                periodEnd: new Date(2026, 1, 1), // Feb 1, 2026
-                price: 299.99,
-                currency: "PLN",
-              },
-            ],
-          },
-          {
-            id: "sample-4",
-            name: "ChatGPT Plus",
-            price: 20,
-            currency: "USD",
-            billingCycle: "monthly",
-            category: "Produktywność",
-            nextPaymentDate: new Date(2026, 2, 10), // March 10, 2026
-            history: [
-              {
-                periodStart: new Date(2025, 9, 10), // Oct 10, 2025
-                periodEnd: new Date(2025, 10, 10), // Nov 10, 2025
-                price: 20,
-                currency: "USD",
-              },
-              {
-                periodStart: new Date(2025, 10, 10), // Nov 10, 2025
-                periodEnd: new Date(2025, 11, 10), // Dec 10, 2025
-                price: 20,
-                currency: "USD",
-              },
-              {
-                periodStart: new Date(2025, 11, 10), // Dec 10, 2025
-                periodEnd: new Date(2026, 0, 10), // Jan 10, 2026
-                price: 20,
-                currency: "USD",
-              },
-              {
-                periodStart: new Date(2026, 0, 10), // Jan 10, 2026
-                periodEnd: new Date(2026, 1, 10), // Feb 10, 2026
-                price: 20,
-                currency: "USD",
-              },
-            ],
-          },
-        ];
-
-        set({ subscriptions: sampleSubscriptions });
       },
 
       deleteSubscriptions: () => {

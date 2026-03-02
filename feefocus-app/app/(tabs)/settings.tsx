@@ -16,7 +16,6 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import CurrencyModal from "@/components/CurrencyModal";
 import {
   registerForPushNotifications,
-  sendTestNotification,
   schedulePaymentNotification,
   cancelSubscriptionNotification,
   scheduleMonthlySummaryNotification,
@@ -52,9 +51,6 @@ export default function SettingsScreen() {
   );
   const deleteSubscriptions = useSubscriptionStore(
     (state) => state.deleteSubscriptions,
-  );
-  const addSampleDataWithHistory = useSubscriptionStore(
-    (state) => state.addSampleDataWithHistory,
   );
   const resetSettings = useSettingsStore((state) => state.resetSettings);
 
@@ -163,7 +159,6 @@ export default function SettingsScreen() {
       [
         {
           text: "Cancel",
-          onPress: () => {},
           style: "cancel",
         },
         {
@@ -180,32 +175,12 @@ export default function SettingsScreen() {
             }
 
             deleteSubscriptions();
+            
             resetSettings();
 
             Alert.alert("Success", "All data has been cleared!");
           },
           style: "destructive",
-        },
-      ],
-    );
-  };
-
-  const handleLoadSampleData = () => {
-    Alert.alert(
-      "Load Sample Data",
-      "This will replace all current subscriptions with sample data. Continue?",
-      [
-        {
-          text: "Cancel",
-          onPress: () => {},
-          style: "cancel",
-        },
-        {
-          text: "Load",
-          onPress: () => {
-            addSampleDataWithHistory();
-            Alert.alert("Success", "Sample data with history has been loaded!");
-          },
         },
       ],
     );
@@ -349,60 +324,6 @@ export default function SettingsScreen() {
                   thumbColor={Colors.text.white}
                 />
               </View>
-
-              <View
-                className="px-4 py-4 border-t"
-                style={{ borderColor: Colors.border.light }}
-              >
-                <TouchableOpacity
-                  onPress={sendTestNotification}
-                  className="rounded-xl px-4 py-3 active:opacity-70"
-                  style={{ backgroundColor: Colors.primary + "20" }}
-                >
-                  <Text
-                    className="text-center font-semibold text-sm"
-                    style={{ color: Colors.primary }}
-                  >
-                    Send Test Notification
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-
-          <View className="mb-8">
-            <Text
-              className="text-xs font-semibold mb-3 px-2 uppercase tracking-wider"
-              style={{ color: Colors.text.secondary }}
-            >
-              Dev Tools
-            </Text>
-            <View
-              className="rounded-2xl overflow-hidden border"
-              style={{
-                backgroundColor: Colors.background.card,
-                borderColor: Colors.border.light,
-              }}
-            >
-              <TouchableOpacity
-                onPress={handleLoadSampleData}
-                className="flex-row items-center px-4 py-4 gap-4 active:opacity-70"
-              >
-                <View
-                  className="flex items-center justify-center w-10 h-10 rounded-lg"
-                  style={{ backgroundColor: "#8b5cf6" + "20" }}
-                >
-                  <MaterialIcons name="add-chart" size={22} color="#8b5cf6" />
-                </View>
-                <View className="flex-1">
-                  <Text
-                    className="text-base font-medium"
-                    style={{ color: Colors.text.primary }}
-                  >
-                    Load Sample Data
-                  </Text>
-                </View>
-              </TouchableOpacity>
             </View>
           </View>
 

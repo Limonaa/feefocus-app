@@ -217,7 +217,7 @@ export default function StatsScreen() {
             })}
           </View>
 
-          {subscriptions.length > 0 && (
+          {subscriptions.length > 0 ? (
             <View className="items-center">
               <PieChart
                 data={getPieChartData()}
@@ -264,6 +264,15 @@ export default function StatsScreen() {
                   </View>
                 ))}
               </View>
+            </View>
+          ) : (
+            <View className="items-center pb-4">
+              <Text
+                className="text-base font-medium"
+                style={{ color: Colors.text.secondary }}
+              >
+                No subscriptions added
+              </Text>
             </View>
           )}
         </View>
@@ -322,7 +331,7 @@ export default function StatsScreen() {
               textDayFontFamily: "System",
               textMonthFontSize: 16,
               textDayFontSize: 14,
-            }}
+}}
           />
         </View>
       </View>

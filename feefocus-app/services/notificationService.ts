@@ -38,17 +38,6 @@ export async function registerForPushNotifications(): Promise<boolean> {
   return true;
 }
 
-export async function sendTestNotification(): Promise<void> {
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title: "FeeFocus Test",
-      body: "Notification working",
-      data: { type: "test" },
-    },
-    trigger: null,
-  });
-}
-
 export async function schedulePaymentNotification(
   subscriptionId: string,
   subscriptionName: string,
@@ -126,7 +115,7 @@ export async function scheduleMonthlySummaryNotification(
 
     const identifier = await Notifications.scheduleNotificationAsync({
       content: {
-        title: "Monthly Expenses Summary",
+        title: "FeeFocus",
         body: `This month you spent ${totalAmount.toFixed(2)} ${currency} on subscriptions`,
         data: {
           type: "monthly_summary",

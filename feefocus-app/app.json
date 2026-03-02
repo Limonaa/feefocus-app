@@ -2,7 +2,7 @@
   "expo": {
     "name": "FeeFocus",
     "slug": "feefocus-app",
-    "version": "0.7.3",
+    "version": "0.9.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "feefocusapp",
